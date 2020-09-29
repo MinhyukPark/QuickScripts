@@ -1,4 +1,7 @@
+import random
+
 import click
+import numpy as np
 
 MODEL_MAP = {
     "JC": "000000",
@@ -89,6 +92,15 @@ def main_entry(input_filename):
                         cur_weight_rate = cur_line.split()
                         free_rates.append(cur_weight_rate[2].strip())
                         free_rates.append(cur_weight_rate[1].strip())
+                    free_weights = []
+                    for free_rate in free_rates[::2]:
+                        free_weights.append(float(free_rate))
+                    weight_sum = sum(free_weights)
+                    if(weight_sum != 1):
+                        # I shouldn't have to do this correction but iqtree returns proportions that don't add up to 1 sometimes
+                        normalized_weights = np.array(free_weights) / weight_sum
+                        for weight_index,normalized_weight in enumerate(normalized_weights):
+                            free_rates[weight_index * 2] = str(normalized_weight)
             cur_line = f.readline()
     # print(model_family)
     # print("model_rates: ", model_rates)
@@ -121,6 +133,9 @@ def main_entry(input_filename):
             for i in range(4):
                 final_string += (state_freq[i] + ",")
             final_string = final_string[:-1] + "}"
+        else:
+            pass
+            # final_string += "+FQ"
         if any("I" in current_rate for current_rate in model_rate_heterogeneity):
             final_string += ("+I{" + pinv + "}")
         if any("G" in current_rate for current_rate in model_rate_heterogeneity):
