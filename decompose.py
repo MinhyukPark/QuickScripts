@@ -26,7 +26,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
     trees = decomposer.decomposeTree(guide_tree, maximum_size, mode="centroid")
     clusters = []
     for tree in trees:
-        keep = [n.taxon.label for n in tree.leaf_nodes()]
+        keep = [n.taxon.label.replace("_"," ") for n in tree.leaf_nodes()]
         clusters.append(set(keep))
     print(len(clusters))
 
@@ -35,7 +35,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
 
     for sequence in SeqIO.parse(open(sequence_file), "fasta"):
         for cluster_index,cluster in enumerate(clusters):
-            if(sequence.id in cluster):
+            if(sequence.id.replace("_"," ") in cluster):
                 sequence_partitions[cluster_index].append(sequence)
     for sequence_partition_index,sequence_partition in enumerate(sequence_partitions):
         SeqIO.write(sequence_partition, files[sequence_partition_index], "fasta")
