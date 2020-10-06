@@ -34,7 +34,8 @@ MODEL_MAP = {
 
 @click.command()
 @click.option("--input-filename", required=True, type=click.Path(exists=True), help="Input iqtree model file to be parsed")
-def main_entry(input_filename):
+@click.option("--iqtree/--no-iqtree", required=False, default=True, help="Whether to output using RAxML-ng style or IQTree style")
+def main_entry(input_filename, iqtree):
     '''
     It should parse the file and then print the model string
     prints a string in a Model{0.0, 1.0....}+R{w1,r1, w2,r2, ...., wk,rk}
@@ -120,24 +121,34 @@ def main_entry(input_filename):
     skip_position = int(MODEL_MAP[model_family][5])
     # print("skip: ", skip_position)
     # print("model_dict: ", current_model_dict)
+    separator = ","
+    if not iqtree:
+        separator = "/"
+
     if(len(current_model_dict) > 1):
         final_string += "{"
         for i in range(max_position):
             if(i != skip_position):
-                final_string += (current_model_dict[i] + ",")
+                final_string += (current_model_dict[i] + separator)
         final_string = final_string[:-1] + "}"
 
     if(len(model_rate_heterogeneity) > 0):
         if any("F" in current_rate for current_rate in model_rate_heterogeneity):
-            final_string += "+F{"
+            if iqtree:
+                final_string += "+F{"
+            else:
+                final_string += "+FU{"
             for i in range(4):
-                final_string += (state_freq[i] + ",")
+                final_string += (state_freq[i] + separator)
             final_string = final_string[:-1] + "}"
         else:
             pass
             # final_string += "+FQ"
         if any("I" in current_rate for current_rate in model_rate_heterogeneity):
-            final_string += ("+I{" + pinv + "}")
+            if iqtree:
+                final_string += ("+I{" + pinv + "}")
+            else:
+                final_string += ("+IU{" + pinv + "}")
         if any("G" in current_rate for current_rate in model_rate_heterogeneity):
             current_rate_heterogeneity = ""
             for current_rate in model_rate_heterogoneity:
@@ -149,9 +160,18 @@ def main_entry(input_filename):
                 if("R" in current_rate):
                     current_rate_heterogeneity = current_rate
             final_string += "+" + current_rate_heterogeneity + "{"
-            for i in range(len(free_rates)):
-                final_string += (free_rates[i] + ",")
-            final_string = final_string[:-1] + "}"
+            if iqtree:
+                for i in range(len(free_rates)):
+                    final_string += (free_rates[i] + separator)
+                final_string = final_string[:-1] + "}"
+            else:
+                for i in range(1, len(free_rates), 2):
+                    final_string += (free_rates[i] + separator)
+                final_string = final_string[:-1] + "}"
+                final_string += "{"
+                for i in range(0, len(free_rates), 2):
+                    final_string += (free_rates[i] + separator)
+                final_string = final_string[:-1] + "}"
     print(final_string, end="")
 
 if __name__ == "__main__":

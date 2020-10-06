@@ -44,7 +44,7 @@ def compare_trees(tr1, tr2):
 
 
 # if __name__ == "__main__":
-def main(tr1_path, tr2_path)
+def main(tr1_path, tr2_path):
     # argc = len(sys.argv)
     # assert (argc == 3), "Usage: assess_dataset.py tr1 tr2"
 
