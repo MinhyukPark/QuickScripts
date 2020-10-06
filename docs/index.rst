@@ -9,10 +9,8 @@ Welcome to QuickScripts's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   click
 
-.. click:: decompose:decompose_tree
-   :prog: decompose_tree
-   :nested: full
 
 Indices and tables
 ==================
