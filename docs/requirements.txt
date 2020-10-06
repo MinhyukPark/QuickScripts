@@ -1,2 +1,5 @@
 click
 sphinx-click
+numpy
+dendropy
+biopython
