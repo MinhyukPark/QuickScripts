@@ -7,6 +7,8 @@ Welcome to QuickScripts's documentation!
 ========================================
 
 .. toctree::
+   :titlesonly:
+   :hidden:
    Python3 Scripts <python3>
    Shell Scripts <shell>
 
