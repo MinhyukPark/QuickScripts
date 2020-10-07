@@ -11,11 +11,3 @@ Welcome to QuickScripts's documentation!
 
    python3
    shell
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

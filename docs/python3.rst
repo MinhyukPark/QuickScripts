@@ -8,8 +8,8 @@ Tree Decomposition Scripts
     :prog: python3 decompose_tree.py
     :nested: full
 
-.. click:: split_into_two:split_into_two
-    :prog: python3 split_into_two.py
+.. click:: split_in_two:split_in_two
+    :prog: python3 split_in_two.py
     :nested: full
 
 Tree File Manipulation Scripts
