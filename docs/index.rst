@@ -7,10 +7,9 @@ Welcome to QuickScripts's documentation!
 ========================================
 
 .. toctree::
-   :titlesonly:
-   :hidden:
-   Python3 Scripts <python3>
-   Shell Scripts <shell>
+   :maxdepth: 1
+   python3
+   shell
 
 
 Indices and tables
