@@ -1,8 +1,7 @@
 Tree Decomposition Scripts
 ##########################
-
 .. click:: decompose:decompose_tree
-    :prog: name <python3 decompose_tree.py>
+    :prog: python3 decompose_tree.py
     :nested: full
 
 Tree File Manipulation Scripts
