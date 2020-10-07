@@ -9,9 +9,8 @@ Welcome to QuickScripts's documentation!
 .. toctree::
    :maxdepth: 2
 
-   decompose_trees
-   parse_iqtree_file
-   newick_to_nexus
+   python3
+   shell
 
 
 Indices and tables
