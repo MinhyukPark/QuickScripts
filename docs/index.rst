@@ -8,6 +8,7 @@ Welcome to QuickScripts's documentation!
 
 .. toctree::
    :maxdepth: 2
+
    python3
    shell
 
