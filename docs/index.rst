@@ -8,8 +8,8 @@ Welcome to QuickScripts's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-   click
+
+   decompose_trees
 
 
 Indices and tables
