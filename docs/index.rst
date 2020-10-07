@@ -7,9 +7,7 @@ Welcome to QuickScripts's documentation!
 ========================================
 
 .. toctree::
-   :maxdepth: 1
    :numbered:
-   :titlesonly:
 
    Python3 Scripts <python3>
 
