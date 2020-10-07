@@ -36,12 +36,8 @@ MODEL_MAP = {
 @click.option("--input-filename", required=True, type=click.Path(exists=True), help="Input iqtree model file to be parsed")
 @click.option("--iqtree/--no-iqtree", required=False, default=True, help="Whether to output using RAxML-ng style or IQTree style")
 def main_entry(input_filename, iqtree):
-    '''
-    It should parse the file and then print the model string
-    prints a string in a Model{0.0, 1.0....}+R{w1,r1, w2,r2, ...., wk,rk}
-    assumes DNA sequences
-    input: iqtree_file(str)
-    returns: None
+    ''' This program parses an IQTree file and then prints the model string
+    It prints a string in a Model{0.0, 1.0....}+R{w1,r1, w2,r2, ...., wk,rk} format
     '''
     model_family = ""
     model_rates = []

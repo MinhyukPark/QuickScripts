@@ -14,8 +14,8 @@ import decomposer
 @click.option("--output-prefix", required=True, type=str, help="Output file prefix for each subset")
 @click.option("--maximum-size", required=True, type=int, help="Maximum size of output subsets")
 def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
-    """This script decomposes the input tree and outputs induced alignments on the subsets
-    """
+    '''This script decomposes the input tree and outputs induced alignments on the subsets.
+    '''
     guide_tree = dendropy.Tree.get(path=input_tree, schema="newick")
     namespace = guide_tree.taxon_namespace
     guide_tree.is_rooted = False
