@@ -7,7 +7,7 @@ Welcome to QuickScripts's documentation!
 ========================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    python3
    shell
