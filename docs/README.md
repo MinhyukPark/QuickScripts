@@ -1,3 +1,3 @@
 # QuickScripts
 
-[Documentation](quickscripts.readthedocs.io/en/latest)
+[Documentation](https://quickscripts.readthedocs.io/en/latest)
