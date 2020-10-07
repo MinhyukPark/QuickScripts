@@ -12,7 +12,7 @@ import decomposer
 @click.option("--input-tree", required=True, type=click.Path(exists=True), help="The input tree file in newick format")
 @click.option("--sequence-file", required=True, type=click.Path(exists=True), help="Aligned sequence file on the full taxa")
 @click.option("--output-prefix", required=True, type=str, help="Output file prefix for each subset")
-@click.option("--maximum-size", required=False, type=int, help="Maximum size of output subsets")
+@click.option("--maximum-size", required=True, type=int, help="Maximum size of output subsets")
 def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
     """This script decomposes the input tree and outputs induced alignments on the subsets
     """
