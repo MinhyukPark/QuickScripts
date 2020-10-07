@@ -7,11 +7,14 @@ Welcome to QuickScripts's documentation!
 ========================================
 
 .. toctree::
-   :numbered:
 
+   *************************
    Python3 Scripts <python3>
+   *************************
 
+   *************************
    Shell Scripts <shell>
+   *************************
 
 
 Indices and tables
