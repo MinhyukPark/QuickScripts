@@ -147,10 +147,10 @@ def main_entry(input_filename, iqtree):
                 final_string += ("+IU{" + pinv + "}")
         if any("G" in current_rate for current_rate in model_rate_heterogeneity):
             current_rate_heterogeneity = ""
-            for current_rate in model_rate_heterogoneity:
+            for current_rate in model_rate_heterogeneity:
                 if("G" in current_rate):
                     current_rate_heterogeneity = current_rate
-            final_string += ("+" + current_rateheterogeneity + "{" + alpha + "}")
+            final_string += ("+" + current_rate_heterogeneity + "{" + alpha + "}")
         if any("R" in current_rate for current_rate in model_rate_heterogeneity):
             for current_rate in model_rate_heterogeneity:
                 if("R" in current_rate):

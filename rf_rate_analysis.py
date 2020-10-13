@@ -1,7 +1,8 @@
 from compare_trees import main as compare_trees
 
 
-PROJECT = "/projects/sciteam/bbaz/minhyuk2/"
+# PROJECT = "/projects/sciteam/bbaz/minhyuk2/"
+PROJECT = "/projects/tallis/minhyuk2/"
 PROJECT_INPUT = PROJECT + "input/"
 CLUSTER_RUNS = PROJECT + "cluster_runs/"
 
@@ -10,7 +11,7 @@ CLUSTER_RUN_MAP = {
 }
 
 DATASET_MAP = {
-    "Paul/TwoCladesHet": "true-tree.tre"
+    "Paul/TwoCladesHet/": "true-tree.tre"
 }
 
 
@@ -34,21 +35,24 @@ for dataset in DATASET_MAP:
         current_tree_fasttree_path = current_replicate_path + "fasttree.tre"
 
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_tree_fasttree_path)
-        if(fp is not fn):
+        if(fp != fn):
+            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
             print("error: fp != fn")
         cumulative_rf_fasttree_rate += rf
         cumulative_fn_fasttree_rate += (fn / ei1)
 
-        current_tree_iqtree_jc_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "JC69/" + current_replicate + "/output/TwoCladesHetIQTree.treefile"
+        current_tree_iqtree_jc_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "JC69/" + current_replicate + "/output/TwoCladeHetIQTree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_tree_iqtree_jc_path)
-        if(fp is not fn):
+        if(fp != fn):
+            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
             print("error: fp != fn")
         cumulative_rf_iqtree_jc_rate += rf
         cumulative_fn_iqtree_jc_rate += (fn / ei1)
 
-        current_tree_iqtree_gtrgamma_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "GTRGamma/" + current_replicate + "/output/TwoCladesHetIQTree.treefile"
+        current_tree_iqtree_gtrgamma_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "GTRGamma/" + current_replicate + "/output/TwoCladeHetIQTree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_tree_iqtree_gtrgamma_path)
-        if(fp is not fn):
+        if(fp != fn):
+            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
             print("error: fp != fn")
         cumulative_rf_iqtree_gtrgamma_rate += rf
         cumulative_fn_iqtree_gtrgamma_rate += (fn / ei1)

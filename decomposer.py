@@ -64,3 +64,4 @@ def getCentroidEdgeRandom(tree, minBound = 5):
         if numMask1 >= minBound and numMask2 >= minBound:
             candidates.append(edge)
     return np.random.choice(candidates)
+
