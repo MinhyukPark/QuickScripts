@@ -1,3 +1,4 @@
+from decimal import *
 import random
 
 import click
@@ -106,6 +107,16 @@ def main_entry(input_filename, iqtree):
     # print(pinv)
     # print(alpha)
     # print(free_rates)
+    getcontext().prec = 8
+    state_freq_sum = Decimal(0)
+    for current_state_freq in state_freq:
+        state_freq_sum += Decimal(current_state_freq)
+    sum_diff = state_freq_sum - Decimal(1)
+    if(sum_diff < Decimal(0.0000007)):
+        state_freq[len(state_freq) - 1] = str(Decimal(state_freq[len(state_freq) - 1]) - sum_diff)
+    elif(sum_diff > Decimal(0.0000007)):
+        state_freq[len(state_freq) - 1] = str(Decimal(state_freq[len(state_freq) - 1]) + sum_diff)
+
     current_model_dict = {}
     max_position = int(MODEL_MAP[model_family][0])
     for position_index, position in enumerate(MODEL_MAP[model_family]):

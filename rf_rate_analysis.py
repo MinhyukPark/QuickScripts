@@ -22,6 +22,7 @@ for dataset in DATASET_MAP:
     cumulative_fn_fasttree_rate = 0.0
     cumulative_fn_iqtree_jc_rate = 0.0
     cumulative_fn_iqtree_gtrgamma_rate = 0.0
+    cumulative_fn_iqtree2_mfp_rate = 0.0
     cumulative_fn_naive_pipeline_2_rate = 0.0
     cumulative_fn_naive_pipeline_120_rate = 0.0
     cumulative_fn_pipeline_binning_50_rate = 0.0
@@ -59,6 +60,13 @@ for dataset in DATASET_MAP:
             print("error: fp != fn")
         cumulative_fn_iqtree_gtrgamma_rate += (fn / ei1)
 
+        current_tree_iqtree2_mfp_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "IQTree2/MFP/" + current_replicate + "/output/TwoCladeHetIQTree.treefile"
+        nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_tree_iqtree2_mfp_path)
+        if(fp != fn):
+            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
+            print("error: fp != fn")
+        cumulative_fn_iqtree2_mfp_rate += (fn / ei1)
+
         current_naive_pipeline_2_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "NaivePipeline/2Subsets/FastTree/" + current_replicate + "/output/gtm.tree"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_naive_pipeline_2_tree_path)
         if(fp != fn):
@@ -73,18 +81,20 @@ for dataset in DATASET_MAP:
            print("error: fp != fn")
         cumulative_fn_naive_pipeline_120_rate += (fn / ei1)
 
-        current_pipeline_binning_50_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/gtm-50.tree"
+        current_pipeline_binning_50_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/gtm-50.tree"
         current_pipeline_binning_50_tree_file = pathlib.Path(current_pipeline_binning_50_tree_path)
         if not current_pipeline_binning_50_tree_file.exists():
-            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-50-L.out", "r")
-            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-50-R.out", "r")
+            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-50-L.out", "r")
+            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-50-R.out", "r")
             L_compat_status = L_compat_file.read()
             R_compat_status = R_compat_file.read()
             print(L_compat_status)
             print(R_compat_status)
-            if(L_compat_status == "0 0 " and R_compat_status == "0 0 "):
+            if(L_compat_status == "0 0 \n" and R_compat_status == "0 0 \n"):
                 print("binning strategy with threshold 50 results in complete merge at: " + current_replicate )
-            current_pipeline_binning_50_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/sequence_partition_50-merged.tree.treefile"
+            elif(L_compat_status == "0 0 \n" or R_compat_status == "0 0 \n"):
+                print("binning strategy with threshold 50 results in partial merge at: " + current_replicate )
+            current_pipeline_binning_50_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/sequence_partition_50-merged.tree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_pipeline_binning_50_tree_path)
         if(fp != fn):
            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
@@ -92,64 +102,80 @@ for dataset in DATASET_MAP:
         cumulative_fn_pipeline_binning_50_rate += (fn / ei1)
 
 
-        current_pipeline_binning_60_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/gtm-60.tree"
+        current_pipeline_binning_60_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/gtm-60.tree"
         current_pipeline_binning_60_tree_file = pathlib.Path(current_pipeline_binning_60_tree_path)
         if not current_pipeline_binning_60_tree_file.exists():
-            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-60-L.out", "r")
-            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-60-R.out", "r")
+            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-60-L.out", "r")
+            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-60-R.out", "r")
             L_compat_status = L_compat_file.read()
             R_compat_status = R_compat_file.read()
-            if(L_compat_status == "0 0 " and R_compat_status == "0 0 "):
+            print(L_compat_status)
+            print(R_compat_status)
+            if(L_compat_status == "0 0 \n" and R_compat_status == "0 0 \n"):
                 print("binning strategy with threshold 60 results in complete merge at: " + current_replicate )
-            current_pipeline_binning_60_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/sequence_partition_60-merged.tree.treefile"
+            elif(L_compat_status == "0 0 \n" or R_compat_status == "0 0 \n"):
+                print("binning strategy with threshold 60 results in partial merge at: " + current_replicate )
+            current_pipeline_binning_60_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/sequence_partition_60-merged.tree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_pipeline_binning_60_tree_path)
         if(fp != fn):
            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
            print("error: fp != fn")
         cumulative_fn_pipeline_binning_60_rate += (fn / ei1)
 
-        current_pipeline_binning_70_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/gtm-70.tree"
+        current_pipeline_binning_70_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/gtm-70.tree"
         current_pipeline_binning_70_tree_file = pathlib.Path(current_pipeline_binning_70_tree_path)
         if not current_pipeline_binning_70_tree_file.exists():
-            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-70-L.out", "r")
-            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-70-R.out", "r")
+            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-70-L.out", "r")
+            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-70-R.out", "r")
             L_compat_status = L_compat_file.read()
             R_compat_status = R_compat_file.read()
-            if(L_compat_status == "0 0 " and R_compat_status == "0 0 "):
+            print(L_compat_status)
+            print(R_compat_status)
+            if(L_compat_status == "0 0 \n" and R_compat_status == "0 0 \n"):
                 print("binning strategy with threshold 70 results in complete merge at: " + current_replicate )
-            current_pipeline_binning_70_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/sequence_partition_70-merged.tree.treefile"
+            elif(L_compat_status == "0 0 \n" or R_compat_status == "0 0 \n"):
+                print("binning strategy with threshold 70 results in partial merge at: " + current_replicate )
+            current_pipeline_binning_70_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/sequence_partition_70-merged.tree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_pipeline_binning_70_tree_path)
         if(fp != fn):
            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
            print("error: fp != fn")
         cumulative_fn_pipeline_binning_70_rate += (fn / ei1)
 
-        current_pipeline_binning_80_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/gtm-80.tree"
+        current_pipeline_binning_80_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/gtm-80.tree"
         current_pipeline_binning_80_tree_file = pathlib.Path(current_pipeline_binning_80_tree_path)
         if not current_pipeline_binning_80_tree_file.exists():
-            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-80-L.out", "r")
-            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-80-R.out", "r")
+            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-80-L.out", "r")
+            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-80-R.out", "r")
             L_compat_status = L_compat_file.read()
             R_compat_status = R_compat_file.read()
-            if(L_compat_status == "0 0 " and R_compat_status == "0 0 "):
+            print(L_compat_status)
+            print(R_compat_status)
+            if(L_compat_status == "0 0 \n" and R_compat_status == "0 0 \n"):
                 print("binning strategy with threshold 80 results in complete merge at: " + current_replicate )
-            current_pipeline_binning_80_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/sequence_partition_80-merged.tree.treefile"
+            elif(L_compat_status == "0 0 \n" or R_compat_status == "0 0 \n"):
+                print("binning strategy with threshold 80 results in partial merge at: " + current_replicate )
+            current_pipeline_binning_80_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/sequence_partition_80-merged.tree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_pipeline_binning_80_tree_path)
         if(fp != fn):
            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
            print("error: fp != fn")
         cumulative_fn_pipeline_binning_80_rate += (fn / ei1)
 
-        current_pipeline_binning_90_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/gtm-90.tree"
+        current_pipeline_binning_90_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/gtm-90.tree"
         current_pipeline_binning_90_tree_file = pathlib.Path(current_pipeline_binning_90_tree_path)
         if not current_pipeline_binning_90_tree_file.exists():
-            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-90-L.out", "r")
-            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/compatsequence_partition_-90-R.out", "r")
+            L_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-90-L.out", "r")
+            R_compat_file = open(CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/compatsequence_partition_-90-R.out", "r")
             L_compat_status = L_compat_file.read()
             R_compat_status = R_compat_file.read()
-            if(L_compat_status == "0 0 " and R_compat_status == "0 0 "):
+            print(L_compat_status)
+            print(R_compat_status)
+            if(L_compat_status == "0 0 \n" and R_compat_status == "0 0 \n"):
                 print("binning strategy with threshold 90 results in complete merge at: " + current_replicate )
-            current_pipeline_binning_90_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output/sequence_partition_90-merged.tree.treefile"
+            elif(L_compat_status == "0 0 \n" or R_compat_status == "0 0 \n"):
+                print("binning strategy with threshold 90 results in partial merge at: " + current_replicate )
+            current_pipeline_binning_90_tree_path = CLUSTER_RUNS + CLUSTER_RUN_MAP[dataset] + "PipelineBinning/IQTree/MFP/" + current_replicate + "/output_50_60_70_80_90_gtm/sequence_partition_90-merged.tree.treefile"
         nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree_path, current_pipeline_binning_90_tree_path)
         if(fp != fn):
            print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
@@ -166,6 +192,10 @@ for dataset in DATASET_MAP:
 
     average_fn_rate = cumulative_fn_iqtree_gtrgamma_rate / (replicate_count - 1)
     print("IQTree GTRGamma dataset: ", dataset, end=" - ")
+    print("av fn rate: ", average_fn_rate)
+
+    average_fn_rate = cumulative_fn_iqtree2_mfp_rate / (replicate_count - 1)
+    print("IQTree2 MFP dataset: ", dataset, end=" - ")
     print("av fn rate: ", average_fn_rate)
 
     average_fn_rate = cumulative_fn_naive_pipeline_2_rate / (replicate_count - 1)
