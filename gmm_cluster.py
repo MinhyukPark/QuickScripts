@@ -2,17 +2,19 @@ import random
 
 import click
 import numpy as np
-
+from sklearn import mixture
 
 @click.command()
 @click.option("--input-filename", required=True, type=click.Path(exists=True), help="Input iqtree model file to be parsed")
 @click.option("--label", required=True, type=str, help="Identifiable label for the feature vector")
 @click.option("--output-filename", required=True, type=click.Path(exists=False), help="Output file to append the rates to")
-@click.option("--iqtree/--no-iqtree", required=False, default=True, help="Whether to output using RAxML-ng style or IQTree style")
-def extract_feature_vector(input_filename, label, output_filename, iqtree):
+def extract_feature_vector(input_filename, label, output_filename):
     ''' This program parses an IQTree file and then prints the model string
     It prints a string in a Model{0.0, 1.0....}+R{w1,r1, w2,r2, ...., wk,rk} format
     '''
+    extract_feature_vector_helper(input_filename, label, output_filename)
+
+def extract_feature_vector_helper(input_filename, label, output_filename):
     model_rates = []
     with open(input_filename) as f:
         cur_line = f.readline()
@@ -29,14 +31,6 @@ def extract_feature_vector(input_filename, label, output_filename, iqtree):
                     cur_rate = cur_line.split()[1]
                     model_rates.append(cur_rate.strip())
             cur_line = f.readline()
-    # print(model_family)
-    # print("model_rates: ", model_rates)
-    # print(model_rate_heterogeneity)
-    # print(state_freq)
-    # print(pinv)
-    # print(alpha)
-    # print(free_rates)
-    # print(final_string, end="")
     with open(output_filename, "a+") as f:
         f.write(label)
         f.write(":")
@@ -44,9 +38,58 @@ def extract_feature_vector(input_filename, label, output_filename, iqtree):
             f.write(" ")
             f.write(model_rate)
         f.write("\n")
+    return model_rates
+
+@click.command()
+@click.option("--input-folder", required=True, type=click.Path(exists=True), help="Input folder with iqtree files and subset files")
+@click.option("--num-subsets", required=True, type=int, help="Initial number of subsets")
+@click.option("--output-prefix", required=True, type=click.Path(exists=False), help="Output file prefix")
+def cluster_using_gmm(input_folder, num_subsets, output_prefix):
+    feature_vectors = []
+    for i in range(num_subsets):
+        current_prefix = input_folder + "/sequence_partition_" + str(i)
+        current_iqtree_file = current_prefix + ".iqtree"
+        feature_vectors.append(extract_feature_vector_helper(current_iqtree_file, current_prefix, output_prefix + "feautures.mat"))
+    '''
+    feature_vectors = []
+    for i in range(10):
+        feature_vectors.append(np.array([0 + random.uniform(-0.1, 0.1),0 + random.uniform(-0.1, 0.1),0 + random.uniform(-0.1, 0.1),0 + random.uniform(-0.1, 0.1),0 + random.uniform(-0.1, 0.1),0 + random.uniform(-0.1, 0.1)]))
+    for i in range(10):
+        feature_vectors.append(np.array([0.5 + random.uniform(-0.1, 0.1),0.5 + random.uniform(-0.1, 0.1),0.5 + random.uniform(-0.1, 0.1),0.5 + random.uniform(-0.1, 0.1),0.5 + random.uniform(-0.1, 0.1),0.5 + random.uniform(-0.1, 0.1)]))
+    for i in range(10):
+        feature_vectors.append(np.array([1 + random.uniform(-0.1, 0.1),1 + random.uniform(-0.1, 0.1),1 + random.uniform(-0.1, 0.1),1 + random.uniform(-0.1, 0.1),1 + random.uniform(-0.1, 0.1),1 + random.uniform(-0.1, 0.1)]))
+    '''
+
+    covariance_type_arr = ["full", "tied", "diag", "spherical"]
+    max_clusters = 20
+    min_bic = None
+    best_gmm = None
+    best_num_components = None
+    for current_cluster_num in range(2, max_clusters):
+        for current_covariance_type in covariance_type_arr:
+            gmm = mixture.GaussianMixture(n_components=current_cluster_num, covariance_type=current_covariance_type)
+            gmm.fit(feature_vectors)
+            current_bic = gmm.bic(np.array(feature_vectors))
+            if(min_bic == None or current_bic < min_bic):
+                min_bic = current_bic
+                best_gmm = gmm
+                best_num_components = current_cluster_num
+    cluster_map = {}
+    for partition_index,feature_vector in enumerate(feature_vectors):
+        cluster_index = best_gmm.predict(np.array(feature_vector).reshape(1, -1))[0]
+        if(not cluster_index in cluster_map):
+            cluster_map[cluster_index] = []
+        cluster_map[cluster_index].append(partition_index)
+    for cluster_index in cluster_map:
+        current_partitions = cluster_map[cluster_index]
+        with open(output_prefix + "/sequence_gmm_partition-" + str(cluster_index) + ".fasta", "w") as cluster_file:
+            for current_partition in current_partitions:
+                with open(input_folder + "/sequence_partition_" + str(current_partition) + ".out") as sequence_file:
+                    for line in sequence_file:
+                        cluster_file.write(line)
 
 if __name__ == "__main__":
-    extract_feature_vector();
+    cluster_using_gmm()
 
 
 '''
