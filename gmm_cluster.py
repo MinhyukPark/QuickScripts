@@ -82,9 +82,9 @@ def cluster_using_gmm(input_folder, num_subsets, output_prefix):
         cluster_map[cluster_index].append(partition_index)
     for cluster_index in cluster_map:
         current_partitions = cluster_map[cluster_index]
-        with open(output_prefix + "/sequence_gmm_partition_" + str(cluster_index) + ".fasta", "w") as cluster_file:
+        with open(output_prefix + "sequence_gmm_partition_" + str(cluster_index) + ".fasta", "w") as cluster_file:
             for current_partition in current_partitions:
-                with open(input_folder + "/sequence_partition_" + str(current_partition) + ".out") as sequence_file:
+                with open(input_folder + "sequence_partition_" + str(current_partition) + ".out") as sequence_file:
                     for line in sequence_file:
                         cluster_file.write(line)
     print(best_num_components)
