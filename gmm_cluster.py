@@ -61,7 +61,7 @@ def cluster_using_gmm(input_folder, num_subsets, output_prefix):
     '''
 
     covariance_type_arr = ["full", "tied", "diag", "spherical"]
-    max_clusters = 20
+    max_clusters = 10
     min_bic = None
     best_gmm = None
     best_num_components = None
@@ -80,6 +80,12 @@ def cluster_using_gmm(input_folder, num_subsets, output_prefix):
         if(not cluster_index in cluster_map):
             cluster_map[cluster_index] = []
         cluster_map[cluster_index].append(partition_index)
+    with open(output_prefix + "gmm_cluster_info.aux", "w") as cluster_info_file:
+        for cluster_index in cluster_map:
+            cluster_info_file.write(str(cluster_index) + ":")
+            for partition_index in cluster_map[cluster_index]:
+                cluster_info_file.write(" " + str(parittion_index))
+            cluster_info_file.write("\n")
     for cluster_index in cluster_map:
         current_partitions = cluster_map[cluster_index]
         with open(output_prefix + "sequence_gmm_partition_" + str(cluster_index) + ".fasta", "w") as cluster_file:
