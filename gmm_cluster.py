@@ -47,7 +47,7 @@ def extract_feature_vector_helper(input_filename, label, output_filename):
 def cluster_using_gmm(input_folder, num_subsets, output_prefix):
     feature_vectors = []
     for i in range(num_subsets):
-        current_prefix = input_folder + "/sequence_partition_" + str(i)
+        current_prefix = input_folder + "sequence_partition_" + str(i)
         current_iqtree_file = current_prefix + ".iqtree"
         feature_vectors.append(extract_feature_vector_helper(current_iqtree_file, current_prefix, output_prefix + "feautures.mat"))
     '''
@@ -81,10 +81,10 @@ def cluster_using_gmm(input_folder, num_subsets, output_prefix):
             cluster_map[cluster_index] = []
         cluster_map[cluster_index].append(partition_index)
     with open(output_prefix + "gmm_cluster_info.aux", "w") as cluster_info_file:
-        for cluster_index in cluster_map:
+        for cluster_index in range(len(cluster_map)):
             cluster_info_file.write(str(cluster_index) + ":")
             for partition_index in cluster_map[cluster_index]:
-                cluster_info_file.write(" " + str(parittion_index))
+                cluster_info_file.write(" " + str(partition_index))
             cluster_info_file.write("\n")
     for cluster_index in cluster_map:
         current_partitions = cluster_map[cluster_index]
