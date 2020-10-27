@@ -14,22 +14,31 @@ def extract_feature_vector(input_filename, label, output_filename):
     '''
     extract_feature_vector_helper(input_filename, label, output_filename)
 
-def extract_feature_vector_helper(input_filename, label, output_filename):
+def extract_feature_vector_helper(input_filename, label, output_filename, full_rate_matrix):
     model_rates = []
     with open(input_filename) as f:
         cur_line = f.readline()
         while cur_line:
-            if("Model of substitution" in cur_line):
-                cur_arr = cur_line.split()
-                cur_model = cur_arr[3].strip()
-                model_family = cur_model.split("+")[0]
-                model_rate_heterogeneity = cur_model.split("+")[1:]
-                for i in range(3):
+            if(full_rate_matrix):
+                if("Rate matrix Q" in cur_line):
                     cur_line = f.readline()
-                for i in range(6):
-                    cur_line = f.readline()
-                    cur_rate = cur_line.split()[1]
-                    model_rates.append(cur_rate.strip())
+                    for i in range(4):
+                        cur_line = f.readline()
+                        cur_rates = cur_line.split()[1:]
+                        for cur_rate in cur_rates:
+                            model_rates.append(cur_rate.strip())
+            else:
+                if("Model of substitution" in cur_line):
+                    cur_arr = cur_line.split()
+                    cur_model = cur_arr[3].strip()
+                    model_family = cur_model.split("+")[0]
+                    model_rate_heterogeneity = cur_model.split("+")[1:]
+                    for i in range(3):
+                        cur_line = f.readline()
+                    for i in range(6):
+                        cur_line = f.readline()
+                        cur_rate = cur_line.split()[1]
+                        model_rates.append(cur_rate.strip())
             cur_line = f.readline()
     with open(output_filename, "a+") as f:
         f.write(label)
@@ -44,12 +53,13 @@ def extract_feature_vector_helper(input_filename, label, output_filename):
 @click.option("--input-folder", required=True, type=click.Path(exists=True), help="Input folder with iqtree files and subset files")
 @click.option("--num-subsets", required=True, type=int, help="Initial number of subsets")
 @click.option("--output-prefix", required=True, type=click.Path(exists=False), help="Output file prefix")
-def cluster_using_gmm(input_folder, num_subsets, output_prefix):
+@click.option("--full-rate-matrix/--no-full-rate-matrix", default=False, required=False, type=bool, help="Whether to use the full rate matrix or just the six rates")
+def cluster_using_gmm(input_folder, num_subsets, output_prefix, full_rate_matrix):
     feature_vectors = []
     for i in range(num_subsets):
         current_prefix = input_folder + "sequence_partition_" + str(i)
         current_iqtree_file = current_prefix + ".iqtree"
-        feature_vectors.append(extract_feature_vector_helper(current_iqtree_file, current_prefix, output_prefix + "feautures.mat"))
+        feature_vectors.append(extract_feature_vector_helper(current_iqtree_file, current_prefix, output_prefix + "feautures.mat", full_rate_matrix))
     '''
     feature_vectors = []
     for i in range(10):
