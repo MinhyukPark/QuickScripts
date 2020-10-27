@@ -61,7 +61,7 @@ def cluster_using_gmm(input_folder, num_subsets, output_prefix):
     '''
 
     covariance_type_arr = ["full", "tied", "diag", "spherical"]
-    max_clusters = 10
+    max_clusters = min(len(feature_vectors), 10)
     min_bic = None
     best_gmm = None
     best_num_components = None
