@@ -19,6 +19,8 @@ def decomposeTree(tree, maxSubsetSize, mode):
             e = getCentroidEdge(tree)
         elif mode == "random":
             e = getCentroidEdgeRandom(tree, maxSubsetSize/3)
+        elif mode == "longest":
+            e = getLongestEdge(tree)
 
         t1, t2 = bipartitionByEdge(tree, e)
         return decomposeTree(t1, maxSubsetSize, mode) + decomposeTree(t2, maxSubsetSize, mode)
@@ -65,3 +67,16 @@ def getCentroidEdgeRandom(tree, minBound = 5):
             candidates.append(edge)
     return np.random.choice(candidates)
 
+def getLongestEdge(tree):
+    numLeaves = bitprocessing.num_set_bits(tree.seed_node.tree_leafset_bitmask)
+    # numLeaves = len(tree.seed_node.leaf_nodes())
+    longeth_edge = None
+    longest_edge_length = 0
+    for edge in tree.postorder_edge_iter():
+        if edge.tail_node is None:
+            continue
+        current_length = edge.length
+        if longest_edge_length < current_length:
+            longest_edge_length = current_length
+            longest_edge = edge
+    return longest_edge

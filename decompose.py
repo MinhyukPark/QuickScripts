@@ -1,3 +1,4 @@
+import random
 import sys
 
 import click
@@ -13,7 +14,10 @@ import decomposer
 @click.option("--sequence-file", required=True, type=click.Path(exists=True), help="Aligned sequence file on the full taxa")
 @click.option("--output-prefix", required=True, type=str, help="Output file prefix for each subset")
 @click.option("--maximum-size", required=True, type=int, help="Maximum size of output subsets")
-def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
+@click.option("--longest-edge", is_flag=True, help="Specifying longest edge decomposition")
+@click.option("--full-length", required=False, type=int, help="Specifyng a length for the sequences")
+@click.option("--incomplete", required=False, type=int, help="Specifying the size of incomplete decomposition (incomplete < maximum-size)")
+def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longest_edge, full_length, incomplete):
     '''This script decomposes the input tree and outputs induced alignments on the subsets.
     '''
     guide_tree = dendropy.Tree.get(path=input_tree, schema="newick")
@@ -37,9 +41,23 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size):
         for cluster_index,cluster in enumerate(clusters):
             if(sequence.id.replace("_"," ") in cluster):
                 sequence_partitions[cluster_index].append(sequence)
+
     for sequence_partition_index,sequence_partition in enumerate(sequence_partitions):
         SeqIO.write(sequence_partition, files[sequence_partition_index], "fasta")
 
+
+    incomplete_sequences = []
+    for sequence_partition_index in sequence_partitions:
+        if(incomplete != None):
+            if(full_length != None):
+                current_list = filter(lambda x: len(x.seq.ungap("-")) == full_length, sequence_partitions[sequence_partition_index])
+                random.shuffle(current_list)
+                incomplete_sequences.extend(current_list[:incomplete])
+            else:
+                random.shuffle(sequence_partitions[sequence_partition_index])
+                incomplete_sequences.extend(sequence_partitions[sequnece_partitio_index][:incomplete])
+
+    SeqIO.write(incomplete_sequences, output_prefix + "incomplete.out", "fasta")
 
 
 if __name__ == "__main__":
