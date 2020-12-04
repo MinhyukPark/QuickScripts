@@ -47,7 +47,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longe
 
 
     incomplete_sequences = []
-    for sequence_partition_index in sequence_partitions:
+    for sequence_partition_index,sequence_partition in enumerate(sequence_partitions):
         if(incomplete != None):
             if(full_length != None):
                 current_list = filter(lambda x: len(x.seq.ungap("-")) == full_length, sequence_partitions[sequence_partition_index])
@@ -55,7 +55,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longe
                 incomplete_sequences.extend(current_list[:incomplete])
             else:
                 random.shuffle(sequence_partitions[sequence_partition_index])
-                incomplete_sequences.extend(sequence_partitions[sequnece_partitio_index][:incomplete])
+                incomplete_sequences.extend(sequence_partitions[sequence_partition_index][:incomplete])
 
     SeqIO.write(incomplete_sequences, output_prefix + "incomplete.out", "fasta")
 
