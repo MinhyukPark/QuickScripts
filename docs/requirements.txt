@@ -3,3 +3,5 @@ sphinx-click
 numpy
 dendropy
 biopython
+matplotlib
+treeswift
