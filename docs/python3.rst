@@ -58,7 +58,6 @@ File Parsing Scripts
    :prog: python3 parse_iqtree_file.py
    :nested: full
 
-
 Visualization Scripts
 ####################
 .. click:: draw_branch_histogram:draw_branch_histogram
