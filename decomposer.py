@@ -12,11 +12,11 @@ from dendropy.utility import bitprocessing
 import os
 import sys
 
-def decomposeTree(tree, maxSubsetSize, mode):
+def decomposeTree(tree, maxSubsetSize, mode, support_threshold):
     numLeaves = len(tree.leaf_nodes())
     if numLeaves > maxSubsetSize:
         if mode == "centroid":
-            e = getCentroidEdge(tree)
+            e = getCentroidEdge(tree, support_threshold)
         elif mode == "random":
             e = getCentroidEdgeRandom(tree, maxSubsetSize/3)
         elif mode == "longest":
@@ -38,7 +38,7 @@ def bipartitionByEdge(tree, edge):
     newTree.update_bipartitions()
     return tree, newTree
 
-def getCentroidEdge(tree):
+def getCentroidEdge(tree, support_threshold):
     numLeaves = bitprocessing.num_set_bits(tree.seed_node.tree_leafset_bitmask)
     # numLeaves = len(tree.seed_node.leaf_nodes())
     bestBalance = float('inf')
@@ -46,9 +46,10 @@ def getCentroidEdge(tree):
         if edge.tail_node is None:
             continue
         balance = abs(numLeaves/2 - bitprocessing.num_set_bits(edge.bipartition.leafset_bitmask))
-        if balance < bestBalance:
+        if balance < bestBalance:# and edge.label > support_threshold:
             bestBalance = balance
             bestEdge = edge
+    print(bestEdge.label)
     return bestEdge
 
 def getCentroidEdgeRandom(tree, minBound = 5):

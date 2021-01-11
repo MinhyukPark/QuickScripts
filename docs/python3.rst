@@ -4,7 +4,7 @@ Python Scripts
 
 
 Sampling Scripts
-##########################
+################
 .. click:: random_sample_sequence:random_sample_sequence
     :prog: python3 random_sample_sequence.py
     :nested: full
@@ -43,8 +43,8 @@ Tree File Manipulation Scripts
     :nested: full
 
 Sequence File Manipulation Scripts
-##############################
-.. click:: fasta_to_phylip:main_entry
+##################################
+.. click:: fasta_to_phylip:fasta_to_phylip
    :prog: python3 fasta_to_phylip.py
    :nested: full
 
@@ -59,7 +59,7 @@ File Parsing Scripts
    :nested: full
 
 Visualization Scripts
-####################
+#####################
 .. click:: draw_branch_histogram:draw_branch_histogram
    :prog: python3 draw_branch_histogram.py
    :nested: full
