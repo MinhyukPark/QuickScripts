@@ -29,7 +29,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longe
     guide_tree.collapse_basal_bifurcation()
     guide_tree.update_bipartitions()
 
-    trees = decomposer.decomposeTree(guide_tree, maximum_size, mode="centroid", support_threshold)
+    trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode="centroid")
     clusters = []
     for tree in trees:
         keep = [n.taxon.label.replace("_"," ") for n in tree.leaf_nodes()]

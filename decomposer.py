@@ -12,7 +12,7 @@ from dendropy.utility import bitprocessing
 import os
 import sys
 
-def decomposeTree(tree, maxSubsetSize, mode, support_threshold):
+def decomposeTree(tree, maxSubsetSize, support_threshold, mode):
     numLeaves = len(tree.leaf_nodes())
     if numLeaves > maxSubsetSize:
         if mode == "centroid":
