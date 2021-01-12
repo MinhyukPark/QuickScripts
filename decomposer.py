@@ -23,7 +23,7 @@ def decomposeTree(tree, maxSubsetSize, support_threshold, mode):
             e = getLongestEdge(tree)
 
         t1, t2 = bipartitionByEdge(tree, e)
-        return decomposeTree(t1, maxSubsetSize, mode) + decomposeTree(t2, maxSubsetSize, mode)
+        return decomposeTree(t1, maxSubsetSize, support_threshold, mode) + decomposeTree(t2, maxSubsetSize, support_threshold, mode)
     else:
         if numLeaves >= 1:
             return [tree]
@@ -46,10 +46,12 @@ def getCentroidEdge(tree, support_threshold):
         if edge.tail_node is None:
             continue
         balance = abs(numLeaves/2 - bitprocessing.num_set_bits(edge.bipartition.leafset_bitmask))
-        if balance < bestBalance:# and edge.label > support_threshold:
+        if balance < bestBalance and edge.head_node.label is not None and float(edge.head_node.label) > support_threshold:
             bestBalance = balance
             bestEdge = edge
-    print(bestEdge.label)
+    sys.stderr.write(bestEdge.head_node)
+    sys.stderr.write(bestEdge.length)
+    sys.stderr.write(bestEdge.head_node.label)
     return bestEdge
 
 def getCentroidEdgeRandom(tree, minBound = 5):
