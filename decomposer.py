@@ -49,9 +49,9 @@ def getCentroidEdge(tree, support_threshold):
         if balance < bestBalance and edge.head_node.label is not None and float(edge.head_node.label) > support_threshold:
             bestBalance = balance
             bestEdge = edge
-    sys.stderr.write(bestEdge.head_node)
-    sys.stderr.write(bestEdge.length)
-    sys.stderr.write(bestEdge.head_node.label)
+    sys.stderr.write(str(bestEdge.head_node))
+    sys.stderr.write(str(bestEdge.length))
+    sys.stderr.write(str(bestEdge.head_node.label))
     return bestEdge
 
 def getCentroidEdgeRandom(tree, minBound = 5):
