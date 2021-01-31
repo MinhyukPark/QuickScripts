@@ -19,7 +19,8 @@ import decomposer
 @click.option("--longest", required=False, is_flag=True, help="Samples from the longest sequences in the case of incomplete sampling")
 @click.option("--incomplete", required=False, type=int, help="Specifying the size of incomplete decomposition (incomplete < maximum-size)")
 @click.option("--support-threshold", required=False, type=float, help="Specifying a support threshold for decomposition", default=0.95)
-def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longest_edge, full_length, longest, incomplete, support_threshold):
+@click.option("--mode", type=click.Choice(["centroid", "support", "heuristic"], case_sensitive=False), required=False, default="centroid")
+def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longest_edge, full_length, longest, incomplete, support_threshold, mode):
     '''This script decomposes the input tree and outputs induced alignments on the subsets.
     '''
     guide_tree = dendropy.Tree.get(path=input_tree, schema="newick")
@@ -29,7 +30,7 @@ def decompose_tree(input_tree, sequence_file, output_prefix, maximum_size, longe
     guide_tree.collapse_basal_bifurcation()
     guide_tree.update_bipartitions()
 
-    trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode="centroid")
+    trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode=mode)
     clusters = []
     for tree in trees:
         keep = [n.taxon.label.replace("_"," ") for n in tree.leaf_nodes()]
