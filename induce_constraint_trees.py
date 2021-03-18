@@ -1,3 +1,4 @@
+from pathlib import Path
 import random
 import sys
 
@@ -32,6 +33,7 @@ MODEL_TREE_MAP = {
     "1000M1-L": PROJECTS_INPUT + "Vlad/UnalignFragTree/high_frag/1000M1/REPLICATE/true_tree.tre",
     "1000M1-R": PROJECTS_INPUT + "Vlad/UnalignFragTree/high_frag/1000M1/REPLICATE/true_tree.tre",
     "1000M1": PROJECTS_INPUT + "Vlad/UnalignFragTree/high_frag/1000M1/REPLICATE/true_tree.tre",
+    "RandHetCentro10": PROJECTS_INPUT + "Paul/RandHetCentro10/REPLICATE/true-tree.tre",
 }
 
 REPLICATE_MAP = {
@@ -41,17 +43,20 @@ REPLICATE_MAP = {
     "1000M1-L": ["R0", "R1", "R2", "R3", "R4"],
     "1000M1-R": ["R0", "R1", "R2", "R3", "R4"],
     "1000M1": ["R0", "R1", "R2", "R3", "R4"],
+    "RandHetCentro10": ["R01", "R02", "R03", "R04", "R05", "R06", "R07", "R08", "R09", "R10"],
 }
 
 # @click.option("--input-tree", required=True, type=click.Path(exists=True), help="The input tree file in newick format")
-# @click.option("--sequence-file", required=True, type=click.Path(exists=True), help="Sequence file with taxa labels to induce with")
+# @click.option("--sequence-file", required=False, type=click.Path(exists=True), help="Sequence file with taxa labels to induce with")
 # @click.option("--output-file", required=True, type=str, help="Output file path for the induced subtree")
 # @click.option("--hide-prefix", required=False, is_flag=True, help="Whether to include the rooted prefix in the tree file or not")
-@click.command()
+# @click.command()
 def induce_constraint_trees():
     """This script induces the constraint trees
     """
-    induce_1000M1_with_iqtree()
+    # induce_1000M1_high_support()
+    induce_paul_rhc10()
+
     # for dataset in EXPERIMENT_5_CLUSTER_RUN_MAP:
     #     for replicate in REPLICATE_MAP[dataset]:
     #         cluster_run_path = EXPERIMENT_5_CLUSTER_RUN_MAP[dataset].replace("REPLICATE", replicate)
@@ -90,6 +95,46 @@ def induce_1000M1_with_iqtree():
                 current_sequence_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".out"
                 current_output_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".model.tree"
                 induce_tree_helper(current_model_tree, current_sequence_file, current_output_file, True)
+
+def induce_1000M1_high_support():
+    for method in ["FastTree", "RAxML-ng", "IQTree2"]:
+        for replicate in REPLICATE_MAP["1000M1"]:
+            cluster_run_path = CLUSTER_RUNS + "GTM-experiment6/1000M1_95_decompose/METHOD/REPLICATE/".replace("METHOD", method).replace("REPLICATE", replicate)
+            current_model_tree = MODEL_TREE_MAP["1000M1"].replace("REPLICATE", replicate)
+            num_clusters = 0
+            print(cluster_run_path)
+            with open(cluster_run_path + "output/decompose.out", "r") as f:
+                num_clusters = int(f.readlines()[0])
+            for i in range(num_clusters):
+                current_sequence_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".out"
+                current_output_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".model.tree"
+                induce_tree_helper(current_model_tree, current_sequence_file, current_output_file, True)
+
+def induce_paul_rhc10():
+    for starting_tree in ["fasttree", "iqtree"]:
+        for subset_size in ["120", "500"]:
+            for replicate in REPLICATE_MAP["RandHetCentro10"]:
+                base_path = "/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/REPLICATE/".replace("REPLICATE", replicate)
+                if(starting_tree == "fasttree"):
+                    base_path += "fasttree-centro-"
+                elif(starting_tree == "iqtree"):
+                    base_path += "iqtree+GTR+G-centro-"
+                base_path += str(subset_size)
+                base_path += "/centro-" + str(subset_size) + "-CLUSTERNUM.treefile"
+                num_clusters = -42
+                for i in range(100):
+                    current_tree = base_path.replace("CLUSTERNUM", str(i))
+                    print(current_tree)
+                    if not Path(current_tree).is_file():
+                        num_clusters = i - 1
+                        break
+                print(num_clusters)
+                for i in range(num_clusters):
+                    current_model_tree = MODEL_TREE_MAP["RandHetCentro10"].replace("REPLICATE", replicate)
+                    current_tree = base_path.replace("CLUSTERNUM", str(i))
+                    current_output_file = base_path.replace(".treefile", "-base.treefile")
+                    print(current_output_file)
+                    induce_tree_helper(current_model_tree, current_tree, current_output_file, True, "newick")
 
 
 if __name__ == "__main__":
