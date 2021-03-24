@@ -56,8 +56,6 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
         trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode=mode)
     elif(fragmentary_sequence_file != None):
         trees = decomposer.fragmentary_decompose_tree(guide_tree, maximum_size, fragmentary_mapping)
-
-
     clusters = []
     for tree in trees:
         keep = [n.taxon.label.replace("_"," ") for n in tree.leaf_nodes()]
