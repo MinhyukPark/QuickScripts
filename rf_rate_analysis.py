@@ -142,6 +142,11 @@ STARTING_RANDHETCENTRO10_MAP = {
     "raxmlng": "/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/REPLICATE/raxml+GTR+G/raxml+GTR+G.raxml.bestTree",
 }
 
+STARTING_RANDHETCENTRO10_TIME_MAP = {
+    "fasttree": "/projects/tallis/minhyuk2/cluster_runs/PaulRandHetCentro10/NaivePipeline/120/FastTree/REPLICATE/errors/fasttree.err",
+    "iqtree2": "/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/REPLICATE/iqtree+GTR+G/iqtree-result.log",
+}
+
 STARTING_1000S4_MAP = {
     "fasttree": CLUSTER_RUNS + "1000S4/CreateConstraintTrees/SUBSET/FastTree/REPLICATE/output/fasttree.out",
     "iqtree2": CLUSTER_RUNS + "1000S4/CreateConstraintTrees/SUBSET/IQTree2/REPLICATE/output/iqtree-full.treefile",
@@ -160,11 +165,11 @@ STARTING_RNASim1000_MAP = {
 }
 
 DTM_CONSTRAINED_INC_CLUSTER_RUN_MAP = {
-    "fasttree_iqtree": CLUSTER_RUNS + "DATASET/Constrained-INC/SUBSET/fasttree_iqtree/REPLICATE/DIST",
-    "fasttree_fasttree": CLUSTER_RUNS + "DATASET/Constrained-INC/SUBSET/fasttree_fasttree/REPLICATE/DIST",
-    "mafft": CLUSTER_RUNS + "DATASET/Constrained-INC/SUBSET/MAFFT/REPLICATE/DIST",
-    "mafft_mafft": CLUSTER_RUNS + "DATASET/Constrained-INC/SUBSET/mafft_mafft/REPLICATE/DIST",
-    "iqtree2": CLUSTER_RUNS + "DATASET/Constrained-INC/SUBSET/iqtree/REPLICATE/DIST",
+    "fasttree_iqtree": CLUSTER_RUNS + "DATASET/Constrained-INC/fasttree_iqtree/SUBSET/REPLICATE/DIST",
+    "fasttree_fasttree": CLUSTER_RUNS + "DATASET/Constrained-INC/fasttree_fasttree/SUBSET/REPLICATE/DIST",
+    "mafft": CLUSTER_RUNS + "DATASET/Constrained-INC/MAFFT/SUBSET/REPLICATE/DIST",
+    "mafft_mafft": CLUSTER_RUNS + "DATASET/Constrained-INC/mafft_mafft/SUBSET/REPLICATE/DIST",
+    "iqtree2": CLUSTER_RUNS + "DATASET/Constrained-INC/IQTree2/SUBSET/REPLICATE/DIST",
 }
 
 DTM_TREEMERGE_CLUSTER_RUN_MAP = {
@@ -285,6 +290,13 @@ def get_time_constraints(cluster_run_path, method="IQTree2"):
         for i in range(num_clusters):
             current_raxmlng_path = cluster_run_path + "output/sequence_partition_" + str(i) + ".raxml.log"
             current_max_time = max(current_max_time, get_time_raxmlng(current_raxmlng_path))
+    return current_max_time
+
+def get_time_constraints_randhetcentro10(cluster_run_path, num_clusters):
+    current_max_time = 0
+    for i in range(num_clusters):
+        current_iqtree_path = cluster_run_path + "/centro-500-" + str(i) + ".log"
+        current_max_time = max(current_max_time, get_time_iqtree(current_iqtree_path))
     return current_max_time
 
 
@@ -1903,22 +1915,30 @@ def get_randhetcentro10_1000M1_starting():
 
 def get_DTM_constrained_inc():
     meta_arr = []
-    dataset_arr = ["1000M1_HF", "RNASim1000"] # ["PaulRandHetCentro10", "1000M1_HF"]
+    # dataset_arr = ["1000M1_HF", "RNASim1000", "PaulRandHetCentro10"] # ["PaulRandHetCentro10", "1000M1_HF"]
+    dataset_arr = ["1000M1_HF", "RNASim1000", "PaulRandHetCentro10"] # ["PaulRandHetCentro10", "1000M1_HF"]
+    cluster_num_arr = [6, 7, 7, 7, 7, 7, 7, 7, 7, 7] # for randhetcentro10
     for dataset in dataset_arr:
         data_arr = []
         labels = []
-        #for method in ["fasttree_iqtree", "IQTree2", "MAFFT", "fasttree_fasttree", "mafft_mafft"]:
+        # for method in ["IQTree2", "fasttree_iqtree", "MAFFT"]: #, "fasttree_fasttree", "mafft_mafft"]:
         for method in ["fasttree_iqtree"]:
+            # for subset in ["120", "500"]:
             for subset in ["500"]:
-                for dist in ["node."]: #, "branch_length."]:
+                # for dist in ["node.", "branch_length."]:
+                for dist in ["node."]:
                     cumulative_fn_rate = 0.0
                     cumulative_fp_rate = 0.0
                     current_data_arr = []
                     time_constraints_arr = []
-                    for replicate in REPLICATE_MAP[dataset]:
+                    time_arr = []
+                    for rep_index,replicate in enumerate(REPLICATE_MAP[dataset]):
                         current_time = 0.0
                         current_model_tree = MODEL_TREE_MAP[dataset].replace("REPLICATE", replicate)
-                        current_tree = DTM_CONSTRAINED_INC_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("fasttree_iqtree", subset).replace("SUBSET", method).replace("DIST", dist)
+                        if(dataset == "PaulRandHetCentro10" and dist == "node."):
+                            current_tree = DTM_CONSTRAINED_INC_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("METHOD", method).replace("SUBSET", subset).replace("DIST", "node_dist.")
+                        else:
+                            current_tree = DTM_CONSTRAINED_INC_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("METHOD", method).replace("SUBSET", subset).replace("DIST", dist)
                         if not Path(current_tree).is_file():
                             # missing_count += 1
                             print(current_tree + " is missing")
@@ -1934,29 +1954,45 @@ def get_DTM_constrained_inc():
                         # print("Constrained-inc " + dataset + "-" + subset + "-" + method + "-" + dist + "-" + replicate + " fp rate: ", (fp / ei2))
                         current_data_arr.append(rf)
                         current_cluster_run_path = None
+                        # ''' time
                         if(dataset == "1000M1_HF"):
                             current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/FastTree/500/" + replicate + "/"
-                            current_time += get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/FastTree/500/" + replicate + "/errors/fasttree.err")
+                            current_time = get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/FastTree/500/" + replicate + "/errors/fasttree.err")
                             # print("starting: " + str(current_time))
                             current_time += (get_time_constraints(current_cluster_run_path, method="IQTree2"))
+                            current_time = max(current_time, get_time_iqtree(CLUSTER_RUNS + dataset + "/IQTree/" + replicate + "/iqtree-result.log"))
+                            # fasttree + constraint trees can be done in parallel with IQTree2 guide tree
                             # print("constraints: " + str(current_time))
                             current_time += get_time_memory_from_file(CLUSTER_RUNS + dataset + "/Constrained-INC/fasttree_iqtree/500/" + replicate + "/cinc_node.err")[0]
                             # print("cinc: " + str(current_time))
                             time_constraints_arr.append(current_time)
                         elif(dataset == "RNASim1000"):
                             current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/"
-                            current_time += get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/errors/fasttree.err")
-                            # print("starting: " + str(current_time))
+                            current_time = get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/errors/fasttree.err")
                             current_time += (get_time_constraints(current_cluster_run_path, method="IQTree2"))
+                            current_time = max(current_time, get_time_iqtree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/IQTree2/" + replicate + "/output/iqtree-full.log"))
+                            # print("starting: " + str(current_time))
                             # print("constraints: " + str(current_time))
                             current_time += get_time_memory_from_file(CLUSTER_RUNS + dataset + "/Constrained-INC/fasttree_iqtree/500/" + replicate + "/cinc_node.err")[0]
                             # print("cinc: " + str(current_time))
                             time_constraints_arr.append(current_time)
+                        elif(dataset == "PaulRandHetCentro10"):
+                            current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/" + "fasttree-centro-500/"
+                            current_time = get_time_fasttree(STARTING_RANDHETCENTRO10_TIME_MAP["fasttree"].replace("REPLICATE", replicate))
+                            current_time += get_time_constraints_randhetcentro10("/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/" + replicate + "/fasttree-centro-500/", cluster_num_arr[rep_index])
+                            current_time = max(current_time, get_time_iqtree(STARTING_RANDHETCENTRO10_TIME_MAP["iqtree2"].replace("REPLICATE", replicate)))
+                            # print("starting: " + str(current_time))
+                            # print("constraints: " + str(current_time))
+                            current_time += get_time_memory_from_file(CLUSTER_RUNS + dataset + "/Constrained-INC/fasttree_iqtree/500/" + replicate + "/cinc_node.err")[0]
+                            # print("cinc: " + str(current_time))
+                            time_constraints_arr.append(current_time)
+                        time_arr.append(current_time)
+                        # '''
 
                     # print("Constrained-inc" + dataset + "-" + subset + "-" + method + "-" + dist + " fn rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])))
                     # print("Constrained-inc" + dataset + "-" + subset + "-" + method + "-" + dist + " fp rate: ", str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
                     print("Constrained-INC " + dataset + "-" + subset + "-" + method + "-" + dist + " fn/fp rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])) + "/" + str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
-                    print("Constrained-INC " + dataset + "-" + subset + "-" + method + "-" + dist + " starting + constraints + cinc time: ", np.mean(time_constraints_arr))
+                    print("Constrained-INC " + dataset + "-" + subset + "-" + method + "-" + dist + " starting + constraints + cinc time: ", np.mean(time_arr))
                     data_arr.append(current_data_arr)
                     labels.append(dataset + " Constrained-INC " + " " + subset + " " + method + " " + dist)
         meta_arr.append((data_arr, labels))
@@ -2000,31 +2036,38 @@ def get_DTM_treemerge():
         meta_arr.append((data_arr, labels))
     return meta_arr
 
-def get_DTM_GTM():
+def get_DTM_GTM(): # this is for times in fasttree starting and iqtree guide of GTM
     meta_arr = []
     GTM_1000M1_HF_time_arr = [0.5047855377197266, 0.4293036460876465, 0.37412357330322266, 0.38379764556884766, 0.3979816436767578]
     GTM_RNASim1000_time_arr = [0.32965874671936035, 0.291461706161499, 0.2992827892303467, 0.2864358425140381, 0.2990751266479492]
+    GTM_RandHetCentro10_time_arr = [1.0180625915527344, 0.851370096206665, 0.8667829036712646, 0.91925048828125, 0.8616454601287842, 0.916928768157959, 0.8629660606384277, 0.9727554321289062, 0.8523919582366943, 0.8964204788208008]
+    cluster_num_arr = [6, 7, 7, 7, 7, 7, 7, 7, 7, 7] # for randhetcentro10
 
-    dataset_arr = ["RNASim1000", "1000M1_HF"]
+    dataset_arr = ["RNASim1000", "1000M1_HF", "PaulRandHetCentro10"]
     for dataset in dataset_arr:
         data_arr = []
         labels = []
-        for method in ["fasttree_iqtree"]: #, "IQTree2", "MAFFT", "fasttree_fasttree", "mafft_mafft"]:
-            for subset in ["500"]:
+        for method in ["IQTree2", "fasttree_iqtree", "MAFFT"]: #, "IQTree2", "MAFFT", "fasttree_fasttree", "mafft_mafft"]:
+            for subset in ["120", "500"]:
                 cumulative_fn_rate = 0.0
                 cumulative_fp_rate = 0.0
                 current_data_arr = []
+                time_arr = []
                 time_constraints_arr = []
                 for rep_index,replicate in enumerate(REPLICATE_MAP[dataset]):
                     current_time = 0.0
                     current_model_tree = MODEL_TREE_MAP[dataset].replace("REPLICATE", replicate)
                     current_tree = DTM_GTM_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("METHOD", method).replace("SUBSET", subset)
                     if(dataset == "RNASim1000"):
-                        current_tree = DTM_GTM_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("fasttree_iqtree", subset).replace("SUBSET", method).replace("DIST", "branch_length.")
+                        if(method == "IQTree2"):
+                            current_tree = DTM_GTM_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("iqtree", subset).replace("SUBSET", method)
+                        else:
+                            current_tree = DTM_GTM_CLUSTER_RUN_MAP[method.lower()].replace("DATASET", dataset).replace("REPLICATE", replicate).replace(method, subset).replace("SUBSET", method)
                     if not Path(current_tree).is_file():
                         # missing_count += 1
-                        print(current_tree + " is missing")
+                        # print(current_tree + " is missing")
                         continue
+                    print(current_tree)
                     nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree, current_tree)
                     # if(fp != fn):
                         # print(f"fp: {fp}, fn: {fn}, ei1: {ei1}, ei2: {ei2}")
@@ -2035,11 +2078,14 @@ def get_DTM_GTM():
                     # print("GTM " + dataset + "-" + subset + "-" + method + "-" + replicate + " fn rate: ", (fn / ei1))
                     # print("GTM " + dataset + "-" + subset + "-" + method + "-" + replicate + " fp rate: ", (fp / ei2))
                     current_data_arr.append(rf)
+                    ''' FOR TIME
                     if(dataset == "1000M1_HF"):
                         current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/FastTree/500/" + replicate + "/"
                         current_time += get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/FastTree/500/" + replicate + "/errors/fasttree.err")
                         # print("starting: " + str(current_time))
                         current_time += (get_time_constraints(current_cluster_run_path, method="IQTree2"))
+                        current_time = max(current_time, get_time_iqtree(CLUSTER_RUNS + dataset + "/IQTree/" + replicate + "/iqtree-result.log"))
+                        # fasttree + constraint trees can be done in parallel with IQTree2 guide tree
                         # print("constraints: " + str(current_time))
                         current_time += GTM_1000M1_HF_time_arr[rep_index]
                         # print("cinc: " + str(current_time))
@@ -2047,17 +2093,30 @@ def get_DTM_GTM():
                     elif(dataset == "RNASim1000"):
                         current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/"
                         current_time += get_time_fasttree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/errors/fasttree.err")
-                        # print("starting: " + str(current_time))
                         current_time += (get_time_constraints(current_cluster_run_path, method="IQTree2"))
+                        current_time = max(current_time, get_time_iqtree(CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/IQTree2/" + replicate + "/output/iqtree-full.log"))
+                        # print("starting: " + str(current_time))
                         # print("constraints: " + str(current_time))
                         current_time += GTM_RNASim1000_time_arr[rep_index]
                         # print("cinc: " + str(current_time))
                         time_constraints_arr.append(current_time)
-
+                    elif(dataset == "PaulRandHetCentro10"):
+                        current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/" + "fasttree-centro-500/"
+                        current_time = get_time_fasttree(STARTING_RANDHETCENTRO10_TIME_MAP["fasttree"].replace("REPLICATE", replicate))
+                        current_time += get_time_constraints_randhetcentro10("/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/" + replicate + "/fasttree-centro-500/", cluster_num_arr[rep_index])
+                        current_time = max(current_time, get_time_iqtree(STARTING_RANDHETCENTRO10_TIME_MAP["iqtree2"].replace("REPLICATE", replicate)))
+                        # print("starting: " + str(current_time))
+                        # print("constraints: " + str(current_time))
+                        current_time += GTM_RandHetCentro10_time_arr[rep_index]
+                        # print("cinc: " + str(current_time))
+                        time_constraints_arr.append(current_time)
+                    time_arr.append(current_time)
+                    '''
+                print(time_arr)
                 # print("GTM " + dataset + "-" + subset + "-" + method + " fn rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])))
                 # print("GTM " + dataset + "-" + subset + "-" + method + " fp rate: ", str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
                 print("GTM " + dataset + "-" + subset + "-" + method + " fn/fp rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])) + "/" + str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
-                print("GTM " + dataset + "-" + subset + "-" + method + " total time: ", np.mean(time_constraints_arr))
+                # print("GTM " + dataset + "-" + subset + "-" + method + " total time: ", np.mean(time_arr))
                 data_arr.append(current_data_arr)
                 labels.append(dataset + " GTM " + " " + subset + " " + method)
         meta_arr.append((data_arr, labels))
@@ -2066,7 +2125,7 @@ def get_DTM_GTM():
 
 def get_pairmerge_500_results():
     meta_arr = []
-    dataset_arr = ["1000M1_HF", "RNASim1000"] # ["1000S4", "1000M1_HF", "RandHetCentro10", "RNASim1000"]
+    dataset_arr = ["1000M1_HF", "RNASim1000", "RandHetCentro10"] # ["1000S4", "1000M1_HF", "RandHetCentro10", "RNASim1000"]
     for dataset in dataset_arr:
         data_arr = []
         labels = []
@@ -2106,21 +2165,26 @@ def get_pairmerge_500_results():
         meta_arr.append((data_arr, labels))
     return meta_arr
 
-def get_RNASim1000_1000S4_starting():
-    dataset_arr = ["RNASim1000", "1000S4"]
+def get_RNASim1000_RandHetCentro10_1000M1_HF_starting():
+    dataset_arr = ["RNASim1000", "1000M1_HF", "PaulRandHetCentro10"] #, "1000S4"]
     for dataset in dataset_arr:
         for method in ["fasttree", "iqtree2", "mafft"]:
             cumulative_fn_rate = 0.0
             cumulative_fp_rate = 0.0
             cumulative_time = 0.0
             cumulative_memory = 0.0
+            time_arr = []
             for replicate in REPLICATE_MAP[dataset]:
                 current_model_tree = MODEL_TREE_MAP[dataset].replace("REPLICATE", replicate)
                 current_tree = None
                 if dataset == "RNASim1000":
-                    current_tree = STARTING_RNASim1000_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "120")
+                    current_tree = STARTING_RNASim1000_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "500")
                 elif dataset == "1000S4":
-                    current_tree = STARTING_1000S4_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "120")
+                    current_tree = STARTING_1000S4_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "500")
+                elif dataset == "PaulRandHetCentro10":
+                    current_tree = STARTING_RANDHETCENTRO10_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "500")
+                elif dataset == "1000M1_HF":
+                    current_tree = STARTING_1000M1_MAP[method].replace("REPLICATE", replicate).replace("SUBSET", "500")
                 if not Path(current_tree).is_file():
                     # missing_count += 1
                     print(current_tree + " is missing")
@@ -2128,29 +2192,47 @@ def get_RNASim1000_1000S4_starting():
                 nl, ei1, ei2, fp, fn, rf = compare_trees(current_model_tree, current_tree)
                 cumulative_fn_rate += (fn / ei1)
                 cumulative_fp_rate += (fp / ei2)
-
                 current_time = None
                 current_memory = None
-                if(method == "fasttree"):
-                    current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/fasttree.err")
-                elif(method == "iqtree2"):
-                    current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/iqtree2-complete.err")
-                if(method == "mafft"):
-                    current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/mafft.err")
-                cumulative_time += current_time
-                cumulative_memory += current_memory
+                if(dataset == "RNASim1000"):
+                    if(method == "fasttree"):
+                        current_time = get_time_fasttree(current_tree.split("output")[0] + "errors/fasttree.err")
+                    elif(method == "iqtree2"):
+                        current_time = get_time_iqtree(current_tree.split("output")[0] + "output/iqtree-full.log")
+                        _,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/iqtree2-complete.err")
+                    elif(method == "mafft"):
+                        # current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/mafft.err")
+                        current_time = 0
+                elif(dataset == "PaulRandHetCentro10"):
+                    if(method == "fasttree"):
+                        current_time = get_time_fasttree(STARTING_RANDHETCENTRO10_TIME_MAP[method].replace("REPLICATE", replicate))
+                    elif(method == "iqtree2"):
+                        current_time = get_time_iqtree(STARTING_RANDHETCENTRO10_TIME_MAP[method].replace("REPLICATE", replicate))
+                    elif(method == "mafft"):
+                        # pass
+                        current_time = 0
+                elif(dataset == "1000M1_HF"):
+                    if(method == "fasttree"):
+                        current_time = get_time_fasttree(current_tree.split("output")[0] + "errors/fasttree.err")
+                    elif(method == "iqtree2"):
+                        current_time = get_time_iqtree(current_tree.split(".treefile")[0] + ".log")
+                    elif(method == "mafft"):
+                        # current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/mafft.err")
+                        current_time = 0
+                time_arr.append(current_time)
+            print(time_arr)
 
             print("starting " + dataset + "-" + method + " fn/fp rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])) + "/" + str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
-            print("starting " + dataset + "-" + method + " time: ", str(cumulative_time / len(REPLICATE_MAP[dataset])))
+            print("starting " + dataset + "-" + method + " time: ", np.mean(time_arr))
             print("starting " + dataset + "-" + method + " memory: ", str(cumulative_memory /  len(REPLICATE_MAP[dataset])))
 
 def get_DTM_time_memory(DTM):
     meta_arr = []
-    dataset_arr = ["RNASim1000", "1000M1_HF"] #["RNASim1000", "1000S4"]
+    dataset_arr = ["RNASim1000", "1000M1_HF", "RandHetCentro10"] #["RNASim1000", "1000S4"]
     for dataset in dataset_arr:
         data_arr = []
         labels = []
-        for method in ["IQTree2", "fasttree_iqtree", "MAFFT", "fasttree_fasttree", "mafft_mafft"]:
+        for method in ["IQTree2", "fasttree_iqtree", "MAFFT"]: #, "fasttree_fasttree", "mafft_mafft"]:
             for subset in ["120", "500"]:
                 for dist in ["node.", "branch_length."]:
                     cumulative_fn_rate = 0.0
@@ -2214,6 +2296,8 @@ def get_DTM_time_memory(DTM):
 
 
 def get_new_vs_old_treemerge(DTM):
+    start_constraint_time_arr_1000M1_HF = [18214.29, 5466.797, 13072.079, 7562.918000000001, 9404.446]
+    start_constraint_time_arr_RNASim1000 = [5338.978999999999, 3365.3129999999996, 4735.347, 3072.3990000000003, 2516.464]
     meta_arr = []
     dataset_arr = ["RNASim1000", "1000M1_HF"]
     for dataset in dataset_arr:
@@ -2227,7 +2311,7 @@ def get_new_vs_old_treemerge(DTM):
                     cumulative_memory = 0.0
                     current_data_arr = []
                     time_arr = []
-                    for replicate in REPLICATE_MAP[dataset]:
+                    for rep_index,replicate in enumerate(REPLICATE_MAP[dataset]):
                         cumulative_time = 0.0
                         current_max_memory = 0.0
                         current_model_tree = MODEL_TREE_MAP[dataset].replace("REPLICATE", replicate)
@@ -2243,6 +2327,10 @@ def get_new_vs_old_treemerge(DTM):
 
                         method_name_err = None
                         method_name_err = "treemerge"
+                        if(dataset == "1000M1_HF"):
+                            cumulative_time += start_constraint_time_arr_1000M1_HF[rep_index]
+                        elif(dataset == "RNASim1000"):
+                            cumulative_time += start_constraint_time_arr_RNASim1000[rep_index]
                         current_time,current_memory = get_time_memory(current_tree[:-len("output/treemerge.tree")] + "errors/", method_name_err, dist)
                         cumulative_time += current_time
                         current_max_memory = max(current_max_memory, current_memory)
@@ -2308,11 +2396,14 @@ def DTM_GTM_create_box_plots(meta_arr):
 
 def get_new_treemerge_time_memory(DTM):
     meta_arr = []
-    dataset_arr = ["1000M1_HF", "RNASim1000"]
+    # dataset_arr = ["1000M1_HF", "RNASim1000"]
+    dataset_arr = ["PaulRandHetCentro10"]
+    cluster_num_arr = [6, 7, 7, 7, 7, 7, 7, 7, 7, 7] # for randhetcentro10
     for dataset in dataset_arr:
         data_arr = []
         labels = []
-        for method in ["IQTree2", "fasttree_fasttree", "mafft_mafft"]: #, "fasttree_fasttree", "mafft_mafft"]:
+        # for method in ["IQTree2", "fasttree_fasttree", "mafft_mafft"]: #, "fasttree_fasttree", "mafft_mafft"]:
+        for method in ["fasttree_fasttree"]: #, "fasttree_fasttree", "mafft_mafft"]:
             for subset in ["500"]: # ["120", "500"]:
                 for dist in ["node"]: # ["node", "brlen"]:
                     cumulative_fn_rate = 0.0
@@ -2321,12 +2412,15 @@ def get_new_treemerge_time_memory(DTM):
                     current_data_arr = []
                     time_arr = []
                     memory_arr = []
-                    for replicate in REPLICATE_MAP[dataset]:
+                    starting_constraint_time_arr = []
+                    for rep_index,replicate in enumerate(REPLICATE_MAP[dataset]):
                         cumulative_time = 0.0
                         current_max_memory = 0.0
                         current_model_tree = MODEL_TREE_MAP[dataset].replace("REPLICATE", replicate)
                         current_tree = None
                         current_tree = NEW_TREEMERGE_TIME_MEMORY_CLUSTER_RUN_MAP["default"].replace("DATASET", dataset).replace("REPLICATE", replicate).replace("METHOD", method).replace("SUBSET", subset).replace("DIST", dist).replace("DTM", DTM)
+                        if(dataset == "PaulRandHetCentro10"):
+                            current_tree = current_tree.replace("500/", "")
                         if not Path(current_tree).is_file():
                             # missing_count += 1
                             print(current_tree + " is missing")
@@ -2366,6 +2460,18 @@ def get_new_treemerge_time_memory(DTM):
                             # print("starting: " + str(current_time))
                             # print("starting: " + str(current_time))
                             cumulative_time += (get_time_constraints(current_cluster_run_path, method="IQTree2"))
+                        elif(dataset == "PaulRandHetCentro10"):
+                            current_cluster_run_path = CLUSTER_RUNS + dataset + "/CreateConstraintTrees/500/FastTree/" + replicate + "/" + "fasttree-centro-500/"
+                            # print("time")
+                            # print(cumulative_time)
+                            cumulative_time += get_time_fasttree(STARTING_RANDHETCENTRO10_TIME_MAP["fasttree"].replace("REPLICATE", replicate))
+                            # print("time with start tree")
+                            # print(cumulative_time)
+                            cumulative_time += get_time_constraints_randhetcentro10("/projects/tallis/minhyuk2/paul_rhc10/random-het-centro10/" + replicate + "/fasttree-centro-500/", cluster_num_arr[rep_index])
+                            # print("time with constraints")
+                            # print(cumulative_time)
+                            # cumulative_time = max(cumulative_time, get_time_iqtree(STARTING_RANDHETCENTRO10_TIME_MAP["iqtree2"].replace("REPLICATE", replicate)))
+                        starting_constraint_time_arr.append(cumulative_time)
 
 
                         method_name_err = "treemerge_"
@@ -2374,37 +2480,44 @@ def get_new_treemerge_time_memory(DTM):
                         # print("treemerge time: " + str(current_time))
                         cumulative_time += current_time
                         # print("CURRENT TIME: " + str(cumulative_time))
-                        current_max_memory = max(current_max_memory, current_memory)
+                        # current_max_memory = max(current_max_memory, current_memory)
                         current_time,current_memory = get_time_memory_from_file(current_tree.replace("output", "errors").split("treemerge_")[0] + "merge.err")
                         # print("merge time: " + str(current_time))
                         cumulative_time += current_time
                         # print("CURRENT TIME: " + str(cumulative_time))
-                        current_max_memory = max(current_max_memory, current_memory)
+                        # current_max_memory = max(current_max_memory, current_memory)
                         # current_time,current_memory = get_time_memory_from_file(current_tree.replace("output", "errors").split("treemerge_")[0] + "setup_merger.err")
                         # cumulative_time += current_time
-                        current_max_memory = max(current_max_memory, current_memory)
+                        # current_max_memory = max(current_max_memory, current_memory)
                         current_time,current_memory = get_time_memory_from_file(current_tree.replace("output", "errors").split("treemerge_")[0] + "run_merger.err")
                         # print("run_merger time: " + str(current_time))
                         cumulative_time += current_time
                         # print("CURRENT TIME: " + str(cumulative_time))
-                        current_max_memory = max(current_max_memory, current_memory)
+                        # current_max_memory = max(current_max_memory, current_memory)
                         iqtree_time = 0.0
 
-                        for iqtree_file in glob.glob(current_tree.split("output")[0] + "/output/njmergepair-sequence_partition_*-and-sequence_partition_*-starting.tree.log"):
-                            iqtree_time = max(iqtree_time, get_time_iqtree(iqtree_file))
-                            # print("current_iqtree_time : ", str(get_time_iqtree(iqtree_file)))
-                            current_max_memory = max(current_max_memory, get_memory_iqtree(iqtree_file))
-                        # print("iqtree time: " + str(iqtree_time))
-                        cumulative_time += iqtree_time
+                        if(DTM == "IQ_Constrained-INC"):
+                            # print("IQTREE FILES")
+                            # print(current_tree)
+                            # print(current_tree.split("output")[0])
+                            for iqtree_file in glob.glob(current_tree.split("output")[0] + "/output/njmergepair-centro-500-*-and-centro-500-*-starting.tree.log"):
+                                # print(iqtree_file)
+                                iqtree_time = max(iqtree_time, get_time_iqtree(iqtree_file))
+                                # print("current_iqtree_time : ", str(get_time_iqtree(iqtree_file)))
+                                # current_max_memory = max(current_max_memory, get_memory_iqtree(iqtree_file))
+                            # print("iqtree time: " + str(iqtree_time))
+                            cumulative_time += iqtree_time
 
                         # print("CURRENT TIME: " + str(cumulative_time))
                         time_arr.append(cumulative_time)
-                        memory_arr.append(current_max_memory)
+                        # memory_arr.append(current_max_memory)
 
-                    print(time_arr)
+                    # print(time_arr)
                     print(DTM + " " + dataset + "-" + subset + "-" + method + "-" + dist + " fn/fp rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])) + "/" + str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
                     print(DTM + " " + dataset + "-" + subset + "-" + method + "-" + dist + " time: ", np.mean(time_arr))
-                    print(DTM + " " + dataset + "-" + subset + "-" + method + "-" + dist + " memory: ", np.mean(memory_arr))
+                    # print(DTM + " " + dataset + "-" + subset + "-" + method + "-" + dist + " memory: ", np.mean(memory_arr))
+                    # print(dataset + "-" + method + "-cumulative time " + replicate + ": ")
+                    # print(starting_constraint_time_arr)
                     data_arr.append(current_data_arr)
                     labels.append(dataset + " DTM " + " " + subset + " " + method + " " + dist)
         meta_arr.append((data_arr, labels))
@@ -2453,12 +2566,11 @@ def get_RNASim1000_1000M1_HF_starting():
                     else:
                         current_time = get_time_iqtree(current_tree.split("output")[0] + "output/iqtree-full.log")
                         _,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/iqtree2-complete.err")
-                if(method == "mafft"):
+                elif(method == "mafft"):
                     current_time,current_memory = get_time_memory_from_file(current_tree.split("output")[0] + "errors/mafft.err")
                 cumulative_time += current_time
                 cumulative_memory += current_memory
                 time_arr.append(current_time)
-
             print("starting " + dataset + "-" + method + " fn/fp rate: ", str(cumulative_fn_rate / len(REPLICATE_MAP[dataset])) + "/" + str(cumulative_fp_rate / len(REPLICATE_MAP[dataset])))
             print("starting " + dataset + "-" + method + " time: ", np.mean(time_arr))
             print("starting " + dataset + "-" + method + " memory: ", str(cumulative_memory /  len(REPLICATE_MAP[dataset])))
@@ -2531,10 +2643,6 @@ def get_RNASim1000_1000M1_HF_starting():
 # print("Paul NJMerge2")
 # get_paul_njmerge2()
 
-# print("RandHetCentro10 and 1000M1_HF starting trees")
-# get_randhetcentro10_1000M1_starting()
-# print("RNASim1000 and 1000M1_HF GTM")
-# meta_arr = get_DTM_GTM()
 # print("RNASIm1000 and 1000M1_HF Constrained-INC")
 # meta_arr = get_DTM_constrained_inc()
 # print("RandHetCentro10 and 1000M1_HF TreeMerge")
@@ -2547,7 +2655,9 @@ def get_RNASim1000_1000M1_HF_starting():
 # meta_arr = get_pairmerge_500_results()
 # pair_merge_create_box_plots(meta_arr)
 
-# print("1000S4 RNASim Starting")
+# print("RandHetCentro10 and 1000M1_HF starting trees")
+# get_randhetcentro10_1000M1_starting()
+# print("RNASim Starting")
 # get_RNASim1000_1000S4_starting()
 # print("1000S4 Constrained-INC")
 # get_DTM_time_memory("Constrained-INC")
@@ -2555,14 +2665,8 @@ def get_RNASim1000_1000M1_HF_starting():
 # get_DTM_time_memory("GTM")
 # print("Constrained-INC")
 # get_DTM_time_memory("Constrained-INC")
-# print("RNASim1000 GTM")
-# get_DTM_time_memory("GTM")
 # print("new treemerge")
 # get_new_vs_old_treemerge("FT_NJMerge_TreeMerge")
-# print("old treemerge")
-# get_new_vs_old_treemerge("OldTreeMerge")
-# print("new treemerge DTM RNASim1000 and 1000S4")
-# get_DTM_time_memory("FT_NJMerge_TreeMerge")
 # print("new treemerge FT_NJMerge")
 # get_new_treemerge_time_memory("FT_NJMerge")
 # print("new treemerge FT_GTM")
@@ -2571,14 +2675,43 @@ def get_RNASim1000_1000M1_HF_starting():
 # get_new_treemerge_time_memory("IQ_GTM")
 # print("new treemerge FT_NJMerge")
 # get_new_treemerge_time_memory("FT_NJMerge")
-print("new treemerge IQ_NJMerge")
-get_new_treemerge_time_memory("IQ_NJMerge")
+# print("new treemerge IQ_NJMerge")
+# get_new_treemerge_time_memory("IQ_NJMerge")
 # print("new treemerge FT_Constrained-INC")
 # get_new_treemerge_time_memory("FT_Constrained-INC")
 # print("new treemerge IQ_Constrained-INC")
-get_new_treemerge_time_memory("IQ_Constrained-INC")
-print("new treemerge IQ_Constrained-INC")
+# get_new_treemerge_time_memory("IQ_Constrained-INC")
+# print("new treemerge IQ_Constrained-INC")
+# print("RNASim1000, 1000M1_HF, RandHetCentro10 GTM")
+# meta_arr = get_DTM_GTM()
 
 
 # print("1000M1_HF RNASim1000 Starting")
 # get_RNASim1000_1000M1_HF_starting()
+#####
+# print("RNASim1000, RandHetCentro10, 1000M1_HF starting")
+# get_RNASim1000_RandHetCentro10_1000M1_HF_starting()
+
+# print("old treemerge")
+# get_new_vs_old_treemerge("OldTreeMerge")
+# print("new treemerge DTM RNASim1000 and 1000M1_HF")
+# get_new_treemerge_time_memory("FT_NJMerge")
+
+
+# print("RNASim1000, 1000M1_HF, RandHetCentro10 GTM")
+# get_DTM_GTM()
+# print("RNASim1000, 1000M1_HF, RandHetCentro10 Constrained-INC")
+# get_DTM_constrained_inc()
+
+# print("new treemerge FT_GTM")
+# get_new_treemerge_time_memory("FT_GTM")
+# print("new treemerge IQ_GTM")
+# get_new_treemerge_time_memory("IQ_GTM")
+# print("new treemerge FT_NJMerge")
+# get_new_treemerge_time_memory("FT_NJMerge")
+# print("new treemerge IQ_NJMerge")
+# get_new_treemerge_time_memory("IQ_NJMerge")
+print("new treemerge FT_Constrained-INC")
+get_new_treemerge_time_memory("FT_Constrained-INC")
+print("new treemerge IQ_Constrained-INC")
+get_new_treemerge_time_memory("IQ_Constrained-INC")
