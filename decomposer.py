@@ -93,7 +93,7 @@ def get_fragmentary_centroid_edge(tree, fragmentary_mapping):
         t2_full_length_leaves = list(filter(lambda x: x not in t1_full_length_leaves, tree.leaf_nodes()))
         t2_fragmentary_leaves = get_num_fragmentary_leaves(t2_full_length_leaves, fragmentary_mapping)
         t2_num_leaves = len(t2_full_length_leaves) + t2_fragmentary_leaves
-        balance = max(t1_num_leaves, t2_num_leaves) - min(t1_num_leaves, t2_num_leaves)
+        balance = abs(num_leaves/2 - t1_num_leaves)
 
         if balance < best_balance:
             best_balanace = balance

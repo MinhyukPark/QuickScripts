@@ -33,22 +33,32 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
 
     # create mapping of closest sequencs
     fragmentary_mapping = {}
-    for fragmentary_sequence in SeqIO.parse(open(fragmentary_sequence_file), "fasta"):
-        current_id = fragmentary_sequence.id
-        best_distance = len(fragmentary_sequence)
-        best_id = None
-        for full_length_sequence in SeqIO.parse(open(sequence_file), "fasta"):
-            current_hamming_distance = 0
-            for position,nucleotide in enumerate(fragmentary_sequence):
-                if(fragmentary_sequence[position] != "-" and full_length_sequence[position] != "-"):
-                    if(fragmentary_sequence[position] != full_length_sequence[position]):
+    if(fragmentary_sequence_file != None):
+        for fragmentary_sequence in SeqIO.parse(open(fragmentary_sequence_file), "fasta"):
+            current_id = fragmentary_sequence.id
+            best_distance = len(fragmentary_sequence)
+            best_id = None
+            for full_length_sequence in SeqIO.parse(open(sequence_file), "fasta"):
+                current_hamming_distance = 0
+                for position,nucleotide in enumerate(fragmentary_sequence):
+                    if(fragmentary_sequence[position] == "-" and full_length_sequence[position] != "-"):
                         current_hamming_distance += 1
-            if(current_hamming_distance < best_distance):
-                best_distance = current_hamming_distance
-                best_id = full_length_sequence.id
-        if(best_id not in fragmentary_mapping):
-            fragmentary_mapping[best_id] = []
-        fragmentary_mapping[best_id].append(current_id)
+                    elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] == "-"):
+                        current_hamming_distance += 1
+                    elif(fragmentary_sequence[position] == "-" and full_length_sequence[position] == "-"):
+                        current_hamming_distance += 0
+                    elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] != "-"):
+                        if(fragmentary_sequence[position] != full_length_sequence[position]):
+                            current_hamming_distance += 1
+                        elif(fragmentary_sequence[position] == full_length_sequence[position]):
+                            current_hamming_distance += 0
+
+                if(current_hamming_distance < best_distance):
+                    best_distance = current_hamming_distance
+                    best_id = full_length_sequence.id
+            if(best_id not in fragmentary_mapping):
+                fragmentary_mapping[best_id] = []
+            fragmentary_mapping[best_id].append(current_id)
 
     trees = None
     sys.stderr.write(str(fragmentary_mapping) + "\n")
