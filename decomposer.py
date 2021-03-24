@@ -52,7 +52,7 @@ def fragmentary_decompose_tree_helper(num_taxa, tree, max_subset_size, fragmenta
     if(num_leaves > max_subset_size):
         e = get_fragmentary_centroid_edge(tree, fragmentary_mapping)
         t1, t2 = bipartitionByEdge(tree, e)
-        return fragmentary_decompose_tree_helper(num_taxa, t1, max_subset_size, fragmentary_mapping) + decompose_tree_helper(num_taxa, t2, max_subset_size, fragmentary_mapping)
+        return fragmentary_decompose_tree_helper(num_taxa, t1, max_subset_size, fragmentary_mapping) + fragmentary_decompose_tree_helper(num_taxa, t2, max_subset_size, fragmentary_mapping)
     else:
         if num_leaves >= 1:
             return [tree]
@@ -101,7 +101,7 @@ def get_fragmentary_centroid_edge(tree, fragmentary_mapping):
     # sys.stderr.write(str(best_edge.head_node))
     # sys.stderr.write(str(best_edge.length))
     # sys.stderr.write(str(best_edge.head_node.label))
-    return bestEdge
+    return best_edge
 
 def bipartitionByEdge(tree, edge):
     newRoot = edge.head_node

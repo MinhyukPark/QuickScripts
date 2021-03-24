@@ -71,9 +71,13 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
         for cluster_index,cluster in enumerate(clusters):
             if(sequence.id.replace("_"," ") in cluster):
                 sequence_partitions[cluster_index].append(sequence)
-                fragmentary_sequences = fragmentary_mapping[sequence.id]
-                for fragmentary_sequence in fragmentary_sequences:
-                    sequence_partitions[cluster_index].append(fragmentary_sequence)
+                if(sequence.id in fragmentary_mapping):
+                    fragmentary_sequence_ids = fragmentary_mapping[sequence.id]
+                    for fragmentary_sequence_id in fragmentary_sequence_ids:
+                        for fragmentary_sequence in SeqIO.parse(open(fragmentary_sequence_file), "fasta"):
+                            if(fragmentary_sequence.id == fragmentary_sequence_id):
+                                sequence_partitions[cluster_index].append(fragmentary_sequence)
+
 
     for sequence_partition_index,sequence_partition in enumerate(sequence_partitions):
         SeqIO.write(sequence_partition, files[sequence_partition_index], "fasta")
