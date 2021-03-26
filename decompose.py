@@ -3,6 +3,7 @@ import sys
 
 import click
 import dendropy
+from scipy.spatial import distance
 from Bio import SeqIO
 
 import decomposer
@@ -39,19 +40,20 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
             best_distance = len(fragmentary_sequence)
             best_id = None
             for full_length_sequence in SeqIO.parse(open(sequence_file), "fasta"):
-                current_hamming_distance = 0
-                for position,nucleotide in enumerate(fragmentary_sequence):
-                    if(fragmentary_sequence[position] == "-" and full_length_sequence[position] != "-"):
-                        current_hamming_distance += 1
-                    elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] == "-"):
-                        current_hamming_distance += 1
-                    elif(fragmentary_sequence[position] == "-" and full_length_sequence[position] == "-"):
-                        current_hamming_distance += 0
-                    elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] != "-"):
-                        if(fragmentary_sequence[position] != full_length_sequence[position]):
-                            current_hamming_distance += 1
-                        elif(fragmentary_sequence[position] == full_length_sequence[position]):
-                            current_hamming_distance += 0
+                # current_hamming_distance = 0
+                current_hamming_distance = distance.hamming(list(str(fragmentary_sequence.seq)), list(str(full_length_sequence.seq)))
+                # for position,nucleotide in enumerate(fragmentary_sequence):
+                #     if(fragmentary_sequence[position] == "-" and full_length_sequence[position] != "-"):
+                #         current_hamming_distance += 1
+                #     elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] == "-"):
+                #         current_hamming_distance += 1
+                #     elif(fragmentary_sequence[position] == "-" and full_length_sequence[position] == "-"):
+                #         current_hamming_distance += 0
+                #     elif(fragmentary_sequence[position] != "-" and full_length_sequence[position] != "-"):
+                #         if(fragmentary_sequence[position] != full_length_sequence[position]):
+                #             current_hamming_distance += 1
+                #         elif(fragmentary_sequence[position] == full_length_sequence[position]):
+                #             current_hamming_distance += 0
 
                 if(current_hamming_distance < best_distance):
                     best_distance = current_hamming_distance
@@ -63,14 +65,19 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
     trees = None
     sys.stderr.write(str(fragmentary_mapping) + "\n")
     if(fragmentary_sequence_file == None):
+        sys.stderr.write("No fragmentary sequence file provided")
         trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode=mode)
     elif(fragmentary_sequence_file != None):
+        sys.stderr.write("Fragmentary sequence file provided")
+        sys.stderr.write("calling fragmentary_decompose_tree")
         trees = decomposer.fragmentary_decompose_tree(guide_tree, maximum_size, fragmentary_mapping)
     clusters = []
+    sys.stderr.write("the number of trees in trees (output of decompose) is " + str(len(trees)))
     for tree in trees:
         keep = [n.taxon.label.replace("_"," ") for n in tree.leaf_nodes()]
         clusters.append(set(keep))
     print(len(clusters))
+    sys.stderr.write("the number of trees in trees (output of decompose) should equal " + str(len(clusters)))
 
     files = [output_prefix + str(i) + ".out" for i in range(len(clusters))]
     sequence_partitions = [[] for _ in range(len(clusters))]

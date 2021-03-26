@@ -46,35 +46,52 @@ def fragmentary_decompose_tree(tree, max_subset_size, fragmentary_mapping):
     return fragmentary_decompose_tree_helper(num_full_length_leaves, tree, max_subset_size, fragmentary_mapping)
 
 def fragmentary_decompose_tree_helper(num_taxa, tree, max_subset_size, fragmentary_mapping):
+    '''This recursive helper function will return an array of trees
+    if the subset size stopping criterion is reached it returns a [tree]
+    otherwise it will call 2 more instances of itself and append the subresults together
+    '''
     num_full_length_leaves = len(tree.leaf_nodes())
     num_fragmentary_leaves = get_num_fragmentary_leaves(tree.leaf_nodes(), fragmentary_mapping)
     num_leaves = num_full_length_leaves + num_fragmentary_leaves
+    # sys.stderr.write("num_full_length_leaves: " + str(num_full_length_leaves))
+    # sys.stderr.write("num_fragmentary_leaves: " + str(num_fragmentary_leaves))
+    # sys.stderr.write("num_leaves: " + str(num_leaves))
     if(num_leaves > max_subset_size):
-        e = get_fragmentary_centroid_edge(tree, fragmentary_mapping)
+        e = get_fragmentary_centroid_edge(tree, max_subset_size, fragmentary_mapping)
         t1, t2 = bipartitionByEdge(tree, e)
         return fragmentary_decompose_tree_helper(num_taxa, t1, max_subset_size, fragmentary_mapping) + fragmentary_decompose_tree_helper(num_taxa, t2, max_subset_size, fragmentary_mapping)
     else:
         if num_leaves >= 1:
+            sys.stderr.write("num_full_length_leaves: " + str(num_full_length_leaves) + "\n")
+            sys.stderr.write("num_fragmentary_leaves: " + str(num_fragmentary_leaves) + "\n")
+            sys.stderr.write("num_leaves: " + str(num_leaves) + "\n")
             return [tree]
         else:
             sys.exit("tree has fewer than 1 leaves!")
 
-def get_num_fragmentary_leaves(leaf_nodes, fragmentary_mapping):
+def get_num_fragmentary_leaves(leaf_nodes, fragmentary_mapping, is_taxon=False):
     num = 0
     for leaf_node in leaf_nodes:
-        if(leaf_node in fragmentary_mapping):
-            num += len(fragmentary_mapping[leaf_node])
+        if(is_taxon):
+            if(leaf_node.label in fragmentary_mapping):
+                num += len(fragmentary_mapping[leaf_node.label])
+        else:
+            if(leaf_node.taxon.label in fragmentary_mapping):
+                num += len(fragmentary_mapping[leaf_node.taxon.label])
     return num
 
 
-def get_fragmentary_centroid_edge(tree, fragmentary_mapping):
+def get_fragmentary_centroid_edge(tree, max_subset_size, fragmentary_mapping):
     num_full_length_leaves = len(tree.leaf_nodes())
     num_fragmentary_leaves = get_num_fragmentary_leaves(tree.leaf_nodes(), fragmentary_mapping)
     num_leaves = num_full_length_leaves + num_fragmentary_leaves
     best_balance = float('inf')
     best_edge = None
-    # sys.stderr.write("searching for best edge in num leaves:")
-    # sys.stderr.write(str(num_leaves) + str("\n"))
+    sys.stderr.write("searching for best edge in num leaves:")
+    sys.stderr.write(str(num_leaves) + str("\n"))
+    t1_num_leaves = 0
+    t2_num_leaves = 0
+    edge_counter = 0
     for edge in tree.postorder_edge_iter():
         if edge.tail_node is None:
             continue
@@ -88,20 +105,40 @@ def get_fragmentary_centroid_edge(tree, fragmentary_mapping):
         # t2_num_leaves = t2_full_length_leaves + t2_fragmentary_leaves
         # balance = max(t1_num_leaves, t2_num_leaves) - min(t1_num_leaves, t2_num_leaves)
         t1_full_length_leaves = edge.bipartition.leafset_taxa(tree.taxon_namespace)
-        t1_fragmentary_leaves = get_num_fragmentary_leaves(t1_full_length_leaves, fragmentary_mapping)
+        t1_fragmentary_leaves = get_num_fragmentary_leaves(t1_full_length_leaves, fragmentary_mapping, is_taxon=True)
         t1_num_leaves = len(t1_full_length_leaves) + t1_fragmentary_leaves
-        t2_full_length_leaves = list(filter(lambda x: x not in t1_full_length_leaves, tree.leaf_nodes()))
-        t2_fragmentary_leaves = get_num_fragmentary_leaves(t2_full_length_leaves, fragmentary_mapping)
+        t2_full_length_leaves = get_filtered_leaves(t1_full_length_leaves, tree.leaf_nodes())
+        t2_fragmentary_leaves = get_num_fragmentary_leaves(t2_full_length_leaves, fragmentary_mapping, is_taxon=False)
         t2_num_leaves = len(t2_full_length_leaves) + t2_fragmentary_leaves
+        sys.stderr.write("searchingc edge " + str(edge_counter) + ": ")
+        sys.stderr.write(str(len(t1_full_length_leaves)) + "+" + str(t1_fragmentary_leaves) + "=" + str(t1_num_leaves) + "/" + str(len(t2_full_length_leaves)) + "+" + str(t2_fragmentary_leaves) + "=" + str(t2_num_leaves) + str("\n"))
+        assert t1_num_leaves + t2_num_leaves == num_leaves, "Num leaves not adding up"
         balance = abs(num_leaves/2 - t1_num_leaves)
+        sys.stderr.write("above edge has balance " + str(balance) + "\n")
+        t1_balance = abs(num_leaves/2 - t1_num_leaves)
+        t2_balance = abs(num_leaves/2 - t2_num_leaves)
+        edge_counter += 1
 
         if balance < best_balance:
-            best_balanace = balance
+            sys.stderr.write("found better balance " + str(balance) + " and edge " + str(edge_counter) + ": ")
+            sys.stderr.write(str(t1_num_leaves) + "/" + str(t2_num_leaves) + str("\n"))
+            best_balance = balance
             best_edge = edge
     # sys.stderr.write(str(best_edge.head_node))
     # sys.stderr.write(str(best_edge.length))
     # sys.stderr.write(str(best_edge.head_node.label))
+    sys.stderr.write("best balance " + str(best_balance) + ": ")
+    sys.stderr.write(str(t1_num_leaves) + "/" + str(t2_num_leaves) + str("\n"))
     return best_edge
+
+def get_filtered_leaves(full_length_leaves, leaf_nodes):
+    filtered_arr = []
+    full_length_leaf_set = set([leaf.label for leaf in full_length_leaves])
+    for leaf_node in leaf_nodes:
+        if(leaf_node.taxon.label not in full_length_leaf_set):
+            filtered_arr.append(leaf_node)
+    return filtered_arr
+
 
 def bipartitionByEdge(tree, edge):
     newRoot = edge.head_node
