@@ -5,3 +5,4 @@ dendropy
 biopython
 matplotlib
 treeswift
+scipy
