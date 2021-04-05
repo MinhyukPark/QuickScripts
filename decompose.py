@@ -16,8 +16,6 @@ import decomposer
 
 # argv guide_tree, subset_size, alignment_on_full_taxa, output_file_prefix
 
-POOL_SIZE=4
-
 def get_closest_sequence_mapping_helper(args):
     return get_closest_sequence_mapping(*args)
 
@@ -65,7 +63,8 @@ def get_closest_sequence_mapping(my_chunk, full_length_sequence_file):
 @click.option("--incomplete", required=False, type=int, help="Specifying the size of incomplete decomposition (incomplete < maximum-size)")
 @click.option("--support-threshold", required=False, type=float, help="Specifying a support threshold for decomposition", default=0.95)
 @click.option("--mode", type=click.Choice(["centroid", "support", "heuristic"], case_sensitive=False), required=False, default="centroid")
-def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_prefix, maximum_size, longest_edge, full_length, longest, incomplete, support_threshold, mode):
+@click.option("--num-cpus", required=False, type=int, default=4, help="Number of workers for computing the hamming distance for fragmentary decompose")
+def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_prefix, maximum_size, longest_edge, full_length, longest, incomplete, support_threshold, mode, num_cpus):
     '''This script decomposes the input tree and outputs induced alignments on the subsets.
     '''
     guide_tree = dendropy.Tree.get(path=input_tree, schema="newick")
@@ -77,15 +76,16 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
 
     # create mapping of closest sequencs
     fragmentary_mapping = {}
+    partial_fragmentary_mapping_arr = None
     if(fragmentary_sequence_file != None):
-        worker_pool = Pool(processes=POOL_SIZE)
+        worker_pool = Pool(processes=num_cpus)
         worker_args_arr = []
         total_fragmentary_sequences = list(SeqIO.parse(open(fragmentary_sequence_file, "r"), "fasta"))
-        chunk_size = int(len(total_fragmentary_sequences) / POOL_SIZE)
-        for worker_id in range(POOL_SIZE):
+        chunk_size = int(len(total_fragmentary_sequences) / num_cpus)
+        for worker_id in range(num_cpus):
             current_chunk = None
             if(chunk_size > 0):
-                if(worker_id == POOL_SIZE - 1):
+                if(worker_id == num_cpus - 1):
                     current_chunk = total_fragmentary_sequences[int(worker_id*chunk_size):]
                 else:
                     current_chunk = total_fragmentary_sequences[int(worker_id*chunk_size):int((worker_id+1)*chunk_size)]
@@ -94,16 +94,16 @@ def decompose_tree(input_tree, sequence_file, fragmentary_sequence_file, output_
             sys.stderr.write("worker id: " + str(worker_id) + "is going to workng on length " + str(len(current_chunk)) + "\n")
             worker_args_arr.append((current_chunk, sequence_file))
         partial_fragmentary_mapping_arr = worker_pool.map(get_closest_sequence_mapping_helper, worker_args_arr)
-    sys.stderr.write(str(partial_fragmentary_mapping_arr))
-    for partial_fragmentary_mapping in partial_fragmentary_mapping_arr:
-        for best_id,fragment_id_arr in partial_fragmentary_mapping.items():
-            if (best_id not in fragmentary_mapping):
-                fragmentary_mapping[best_id] = []
-            fragmentary_mapping[best_id].extend(fragment_id_arr)
-    sys.stderr.write(str(fragmentary_mapping))
+        sys.stderr.write(str(partial_fragmentary_mapping_arr))
+    if(partial_fragmentary_mapping_arr is not None):
+        for partial_fragmentary_mapping in partial_fragmentary_mapping_arr:
+            for best_id,fragment_id_arr in partial_fragmentary_mapping.items():
+                if (best_id not in fragmentary_mapping):
+                    fragmentary_mapping[best_id] = []
+                fragmentary_mapping[best_id].extend(fragment_id_arr)
+        sys.stderr.write(str(fragmentary_mapping) + "\n")
 
     trees = None
-    sys.stderr.write(str(fragmentary_mapping) + "\n")
     if(fragmentary_sequence_file == None):
         trees = decomposer.decomposeTree(guide_tree, maximum_size, support_threshold, mode=mode)
     elif(fragmentary_sequence_file != None):

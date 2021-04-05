@@ -62,9 +62,9 @@ def fragmentary_decompose_tree_helper(num_taxa, tree, max_subset_size, fragmenta
         return fragmentary_decompose_tree_helper(num_taxa, t1, max_subset_size, fragmentary_mapping) + fragmentary_decompose_tree_helper(num_taxa, t2, max_subset_size, fragmentary_mapping)
     else:
         if num_leaves >= 1:
-            sys.stderr.write("num_full_length_leaves: " + str(num_full_length_leaves) + "\n")
-            sys.stderr.write("num_fragmentary_leaves: " + str(num_fragmentary_leaves) + "\n")
-            sys.stderr.write("num_leaves: " + str(num_leaves) + "\n")
+            # sys.stderr.write("num_full_length_leaves: " + str(num_full_length_leaves) + "\n")
+            # sys.stderr.write("num_fragmentary_leaves: " + str(num_fragmentary_leaves) + "\n")
+            # sys.stderr.write("num_leaves: " + str(num_leaves) + "\n")
             return [tree]
         else:
             sys.exit("tree has fewer than 1 leaves!")
@@ -87,8 +87,8 @@ def get_fragmentary_centroid_edge(tree, max_subset_size, fragmentary_mapping):
     num_leaves = num_full_length_leaves + num_fragmentary_leaves
     best_balance = float('inf')
     best_edge = None
-    sys.stderr.write("searching for best edge in num leaves:")
-    sys.stderr.write(str(num_leaves) + str("\n"))
+    # sys.stderr.write("searching for best edge in num leaves:")
+    # sys.stderr.write(str(num_leaves) + str("\n"))
     t1_num_leaves = 0
     t2_num_leaves = 0
     edge_counter = 0
@@ -110,11 +110,11 @@ def get_fragmentary_centroid_edge(tree, max_subset_size, fragmentary_mapping):
         t2_full_length_leaves = get_filtered_leaves(t1_full_length_leaves, tree.leaf_nodes())
         t2_fragmentary_leaves = get_num_fragmentary_leaves(t2_full_length_leaves, fragmentary_mapping, is_taxon=False)
         t2_num_leaves = len(t2_full_length_leaves) + t2_fragmentary_leaves
-        sys.stderr.write("searchingc edge " + str(edge_counter) + ": ")
-        sys.stderr.write(str(len(t1_full_length_leaves)) + "+" + str(t1_fragmentary_leaves) + "=" + str(t1_num_leaves) + "/" + str(len(t2_full_length_leaves)) + "+" + str(t2_fragmentary_leaves) + "=" + str(t2_num_leaves) + str("\n"))
+        # sys.stderr.write("searchingc edge " + str(edge_counter) + ": ")
+        # sys.stderr.write(str(len(t1_full_length_leaves)) + "+" + str(t1_fragmentary_leaves) + "=" + str(t1_num_leaves) + "/" + str(len(t2_full_length_leaves)) + "+" + str(t2_fragmentary_leaves) + "=" + str(t2_num_leaves) + str("\n"))
         assert t1_num_leaves + t2_num_leaves == num_leaves, "Num leaves not adding up"
         balance = abs(num_leaves/2 - t1_num_leaves)
-        sys.stderr.write("above edge has balance " + str(balance) + "\n")
+        # sys.stderr.write("above edge has balance " + str(balance) + "\n")
         t1_balance = abs(num_leaves/2 - t1_num_leaves)
         t2_balance = abs(num_leaves/2 - t2_num_leaves)
         edge_counter += 1
@@ -127,8 +127,8 @@ def get_fragmentary_centroid_edge(tree, max_subset_size, fragmentary_mapping):
     # sys.stderr.write(str(best_edge.head_node))
     # sys.stderr.write(str(best_edge.length))
     # sys.stderr.write(str(best_edge.head_node.label))
-    sys.stderr.write("best balance " + str(best_balance) + ": ")
-    sys.stderr.write(str(t1_num_leaves) + "/" + str(t2_num_leaves) + str("\n"))
+    # sys.stderr.write("best balance " + str(best_balance) + ": ")
+    # sys.stderr.write(str(t1_num_leaves) + "/" + str(t2_num_leaves) + str("\n"))
     return best_edge
 
 def get_filtered_leaves(full_length_leaves, leaf_nodes):
@@ -152,40 +152,40 @@ def getCentroidEdge(tree):
     numLeaves = bitprocessing.num_set_bits(tree.seed_node.tree_leafset_bitmask)
     # numLeaves = len(tree.seed_node.leaf_nodes())
     bestBalance = float('inf')
-    sys.stderr.write("searching for best edge in num leaves:")
-    sys.stderr.write(str(numLeaves) + str("\n"))
+    # sys.stderr.write("searching for best edge in num leaves:")
+    # sys.stderr.write(str(numLeaves) + str("\n"))
     for edge in tree.postorder_edge_iter():
         if edge.tail_node is None:
             continue
         balance = abs(numLeaves/2 - bitprocessing.num_set_bits(edge.bipartition.leafset_bitmask))
-        sys.stderr.write("current_balance:")
-        sys.stderr.write(str(balance) + "\n")
+        # sys.stderr.write("current_balance:")
+        # sys.stderr.write(str(balance) + "\n")
         if balance < bestBalance:
             bestBalance = balance
             bestEdge = edge
-    sys.stderr.write(str(bestEdge.head_node))
-    sys.stderr.write(str(bestEdge.length))
-    sys.stderr.write(str(bestEdge.head_node.label))
+    # sys.stderr.write(str(bestEdge.head_node))
+    # sys.stderr.write(str(bestEdge.length))
+    # sys.stderr.write(str(bestEdge.head_node.label))
     return bestEdge
 
 def getSupportEdge(tree, support_threshold):
     numLeaves = bitprocessing.num_set_bits(tree.seed_node.tree_leafset_bitmask)
     # numLeaves = len(tree.seed_node.leaf_nodes())
     bestBalance = float('inf')
-    sys.stderr.write("searching for best edge in num leaves:")
-    sys.stderr.write(str(numLeaves) + str("\n"))
+    # sys.stderr.write("searching for best edge in num leaves:")
+    # sys.stderr.write(str(numLeaves) + str("\n"))
     for edge in tree.postorder_edge_iter():
         if edge.tail_node is None:
             continue
         balance = abs(numLeaves/2 - bitprocessing.num_set_bits(edge.bipartition.leafset_bitmask))
-        sys.stderr.write("current_balance:")
-        sys.stderr.write(str(balance) + "\n")
+        # sys.stderr.write("current_balance:")
+        # sys.stderr.write(str(balance) + "\n")
         if balance < bestBalance and edge.head_node.label is not None and float(edge.head_node.label) > support_threshold:
             bestBalance = balance
             bestEdge = edge
-    sys.stderr.write(str(bestEdge.head_node) + "\n")
-    sys.stderr.write(str(bestEdge.length) + "\n")
-    sys.stderr.write(str(bestEdge.head_node.label) + "\n")
+    # sys.stderr.write(str(bestEdge.head_node) + "\n")
+    # sys.stderr.write(str(bestEdge.length) + "\n")
+    # sys.stderr.write(str(bestEdge.head_node.label) + "\n")
     return bestEdge
 
 def getCentroidEdgeRandom(tree, minBound = 5):
@@ -249,8 +249,8 @@ def getBestHeuristicEdge(tree, max_subset_size, num_taxa):
     # sys.stderr.write(str(current_best_edge.head_node) + "\n")
     # sys.stderr.write(str(current_best_edge.length) + "\n")
     # sys.stderr.write(str(current_best_edge.head_node.label) + "\n")
-    sys.stderr.write(str(best_subset_L_size) + ":" + str(best_subset_R_size) + "\n")
-    sys.stderr.write(str(best_L_score) + ":" + str(best_R_score) + "\n")
+    # sys.stderr.write(str(best_subset_L_size) + ":" + str(best_subset_R_size) + "\n")
+    # sys.stderr.write(str(best_L_score) + ":" + str(best_R_score) + "\n")
     return current_best_edge
 
 
