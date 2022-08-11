@@ -51,7 +51,7 @@ REPLICATE_MAP = {
 def induce_constraint_trees():
     """This script induces the constraint trees
     """
-    induce_1000M1_with_iqtree()
+    induce_1000M1_high_support()
     # for dataset in EXPERIMENT_5_CLUSTER_RUN_MAP:
     #     for replicate in REPLICATE_MAP[dataset]:
     #         cluster_run_path = EXPERIMENT_5_CLUSTER_RUN_MAP[dataset].replace("REPLICATE", replicate)
@@ -81,6 +81,20 @@ def induce_1000M1_with_iqtree():
     for method in ["IQTree2"]:#["FastTree", "RAxML-ng", "IQTree2"]:
         for replicate in REPLICATE_MAP["1000M1"]:
             cluster_run_path = CLUSTER_RUNS + "GTM-experiment6/1000M1_with_IQTree_starting_tree/METHOD/REPLICATE/".replace("METHOD", method).replace("REPLICATE", replicate)
+            current_model_tree = MODEL_TREE_MAP["1000M1"].replace("REPLICATE", replicate)
+            num_clusters = 0
+            print(cluster_run_path)
+            with open(cluster_run_path + "output/decompose.out", "r") as f:
+                num_clusters = int(f.readlines()[0])
+            for i in range(num_clusters):
+                current_sequence_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".out"
+                current_output_file = cluster_run_path + "output/sequence_partition_" + str(i) + ".model.tree"
+                induce_tree_helper(current_model_tree, current_sequence_file, current_output_file, True)
+
+def induce_1000M1_high_support():
+    for method in ["FastTree", "RAxML-ng", "IQTree2"]:
+        for replicate in REPLICATE_MAP["1000M1"]:
+            cluster_run_path = CLUSTER_RUNS + "GTM-experiment6/1000M1_95_decompose/METHOD/REPLICATE/".replace("METHOD", method).replace("REPLICATE", replicate)
             current_model_tree = MODEL_TREE_MAP["1000M1"].replace("REPLICATE", replicate)
             num_clusters = 0
             print(cluster_run_path)
