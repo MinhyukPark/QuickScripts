@@ -5,3 +5,5 @@ dendropy
 biopython
 matplotlib
 treeswift
+scipy
+scikit-bio
